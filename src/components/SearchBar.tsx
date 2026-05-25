@@ -3,10 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Search, X, MapPin } from 'lucide-react';
 
-/* ═══════════════════════════════════════════════════════════════
-   OSIRIS — Search / Locate Bar
-   Coordinate and place name search with geocoding
-   ═══════════════════════════════════════════════════════════════ */
+/* Search / Locate Bar — coordinate and place name search with geocoding */
 
 interface SearchBarProps {
   onLocate: (lat: number, lng: number) => void;

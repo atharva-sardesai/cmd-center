@@ -1,4 +1,3 @@
-# CRITICAL REMINDER
-**DO NOT PUSH TO GIT UNLESS THE USER EXPLICITLY REVIEWS AND SAYS "GO FOR IT".**
+# Demo Build
 
-*Note generated as per user instructions to ensure this rule is never forgotten.*
+All data displayed is fictional placeholder data for demo purposes only.

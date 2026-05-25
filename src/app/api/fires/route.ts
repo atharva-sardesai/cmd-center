@@ -1,123 +1,68 @@
+// DEMO MOCK — returns fictional data.
+// In production, replace this body with the real backend fetch; the response shape is unchanged.
 
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * OSIRIS — Active Fire & Wildfire Tracking
- * Multi-source: NASA FIRMS Open Data (primary for global fires), NASA EONET (volcanoes)
- */
+const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+const SITE_CLUSTERS = [
+  { name: 'North Hub',      lat: 48.85,  lng:   2.35, count: 412, category: 'PLC/SCADA'     },
+  { name: 'EMEA Node',      lat: 51.51,  lng:  -0.13, count: 318, category: 'ICS'            },
+  { name: 'Central Hub',    lat: 40.71,  lng: -74.01, count: 527, category: 'PLC/SCADA'     },
+  { name: 'West Coast Hub', lat: 37.77,  lng:-122.42, count: 289, category: 'HMI'            },
+  { name: 'APAC Site 1',    lat: 35.68,  lng: 139.65, count: 374, category: 'RTU'            },
+  { name: 'APAC Site 2',    lat: 22.32,  lng: 114.17, count: 261, category: 'PLC/SCADA'     },
+  { name: 'APAC Site 3',    lat:  1.35,  lng: 103.82, count: 198, category: 'ICS'            },
+  { name: 'India Hub 1',    lat: 19.08,  lng:  72.88, count: 445, category: 'RTU'            },
+  { name: 'MEA Node',       lat: 24.45,  lng:  54.38, count: 312, category: 'HMI'            },
+  { name: 'LATAM Node',     lat:-23.55,  lng: -46.63, count: 224, category: 'PLC/SCADA'     },
+  { name: 'South Hub',      lat:-33.87,  lng: 151.21, count: 187, category: 'ICS'            },
+  { name: 'India Plant 2',  lat: 22.61,  lng:  75.69, count: 450, category: 'PLC/SCADA'     },
+  { name: 'India Node 3',   lat: 17.98,  lng:  74.43, count: 200, category: 'ICS'            },
+  { name: 'India Plant 4',  lat: 22.80,  lng:  86.20, count: 550, category: 'PLC/SCADA'     },
+  { name: 'India Hub 5',    lat: 19.88,  lng:  75.32, count: 310, category: 'HMI'            },
+  { name: 'India Node 6',   lat: 20.52,  lng:  72.97, count: 145, category: 'RTU'            },
+  { name: 'India Plant 7',  lat: 23.03,  lng:  72.58, count: 470, category: 'PLC/SCADA'     },
+  { name: 'India Hub 8',    lat: 23.26,  lng:  77.41, count: 260, category: 'ICS'            },
+  { name: 'India Node 9',   lat: 13.08,  lng:  80.27, count: 185, category: 'RTU'            },
+  { name: 'India Plant 10', lat: 11.01,  lng:  76.97, count: 580, category: 'PLC/SCADA'     },
+  { name: 'India Node 11',  lat: 22.97,  lng:  76.07, count: 305, category: 'HMI'            },
+  { name: 'India Hub 12',   lat: 16.70,  lng:  74.24, count: 220, category: 'ICS'            },
+  { name: 'India Plant 13', lat: 21.15,  lng:  79.08, count: 420, category: 'RTU'            },
+  { name: 'India Node 14',  lat: 28.98,  lng:  79.40, count: 280, category: 'HMI'            },
+  { name: 'India Hub 15',   lat: 18.52,  lng:  73.86, count: 200, category: 'ICS'            },
+];
+
+function jitter(base: number, spread: number) {
+  return +(base + (Math.random() - 0.5) * spread).toFixed(4);
+}
 
 export async function GET() {
+  await delay(500 + Math.random() * 300);
   try {
-    let fires: any[] = [];
-    let source = '';
-
-    // Source 1: NASA FIRMS Open Data (Global 24h CSV) - no API key needed
-    const firmsSources = [
-      'https://firms.modaps.eosdis.nasa.gov/data/active_fire/suomi-npp-viirs-c2/csv/SUOMI_VIIRS_C2_Global_24h.csv',
-      'https://firms.modaps.eosdis.nasa.gov/data/active_fire/modis-c6.1/csv/MODIS_C6_1_Global_24h.csv'
-    ];
-
-    for (const url of firmsSources) {
-      try {
-        const res = await fetch(url, {
-          signal: AbortSignal.timeout(15000),
-          headers: { 'User-Agent': 'OSIRIS-Intelligence-Platform/3.5' },
+    const ot_assets: any[] = [];
+    for (const site of SITE_CLUSTERS) {
+      const dots = Math.min(site.count, 55);
+      for (let i = 0; i < dots; i++) {
+        const crit = Math.random();
+        ot_assets.push({
+          lat: jitter(site.lat, 0.4),
+          lng: jitter(site.lng, 0.4),
+          site: site.name,
+          category: site.category,
+          brightness: +(290 + crit * 60).toFixed(1),
+          criticality: crit > 0.85 ? 'CRITICAL' : crit > 0.6 ? 'HIGH' : 'NORMAL',
         });
-        if (res.ok) {
-          const text = await res.text();
-          if (text && text.includes('latitude') && text.length > 200) {
-            const parsed = parseCSV(text);
-            if (parsed.length > 0) {
-              fires = parsed;
-              source = url.includes('SUOMI') ? 'NASA-FIRMS (VIIRS)' : 'NASA-FIRMS (MODIS)';
-              break;
-            }
-          }
-        }
-      } catch { continue; }
-    }
-
-    // Source 2: Pull volcanoes from EONET for richer data
-    try {
-      const volcRes = await fetch('https://eonet.gsfc.nasa.gov/api/v3/events?status=open&category=volcanoes&limit=50', {
-        signal: AbortSignal.timeout(10000),
-      });
-      if (volcRes.ok) {
-        const volcData = await volcRes.json();
-        const volcanoes = (volcData.events || []).map((e: any) => {
-          const geo = e.geometry?.[e.geometry.length - 1];
-          if (!geo?.coordinates) return null;
-          return {
-            lat: geo.coordinates[1],
-            lng: geo.coordinates[0],
-            brightness: 500,
-            confidence: 'high',
-            date: geo.date?.split('T')[0] || '',
-            time: '',
-            frp: 100,
-            title: `[VOLCANO] ${e.title}`,
-            type: 'volcano',
-          };
-        }).filter(Boolean);
-        fires = [...fires, ...volcanoes];
-        if (!source) source = 'NASA-EONET';
       }
-    } catch (e) { console.warn('[OSIRIS] Suppressed EONET error:', e instanceof Error ? e.message : e); }
-
-    return NextResponse.json({
-      fires,
-      total: fires.length,
-      source: source || 'Unknown',
-      timestamp: new Date().toISOString(),
-    }, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=1200',
-      },
-    });
-  } catch (error) {
-    console.error('Fire fetch error:', error);
-    return NextResponse.json({ fires: [], error: 'Failed to fetch fire data' }, { status: 500 });
+    }
+    const total = SITE_CLUSTERS.reduce((a, s) => a + s.count, 0);
+    return NextResponse.json(
+      { ot_assets, fires: ot_assets, total, timestamp: new Date().toISOString() },
+      { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' } }
+    );
+  } catch {
+    return NextResponse.json({ ot_assets: [], fires: [] }, { status: 500 });
   }
 }
-
-function parseCSV(csv: string): any[] {
-  const lines = csv.trim().split('\n');
-  if (lines.length < 2) return [];
-
-  const header = lines[0].split(',');
-  const latIdx = header.indexOf('latitude');
-  const lngIdx = header.indexOf('longitude');
-  const brightIdx = header.indexOf('bright_ti4') !== -1 ? header.indexOf('bright_ti4') : header.indexOf('brightness');
-  const confIdx = header.indexOf('confidence');
-  const dateIdx = header.indexOf('acq_date');
-  const timeIdx = header.indexOf('acq_time');
-  const frpIdx = header.indexOf('frp');
-
-  const fires: any[] = [];
-  // Sample the data if there are too many rows to avoid browser lag. Limit to ~2000 points globally.
-  const maxPoints = 2000;
-  const step = lines.length > maxPoints ? Math.ceil(lines.length / maxPoints) : 1;
-
-  for (let i = 1; i < lines.length; i += step) {
-    const cols = lines[i].split(',');
-    const lat = parseFloat(cols[latIdx]);
-    const lng = parseFloat(cols[lngIdx]);
-    if (isNaN(lat) || isNaN(lng)) continue;
-
-    fires.push({
-      lat: Math.round(lat * 1000) / 1000,
-      lng: Math.round(lng * 1000) / 1000,
-      brightness: parseFloat(cols[brightIdx]) || 0,
-      confidence: cols[confIdx] || 'unknown',
-      date: cols[dateIdx] || '',
-      time: cols[timeIdx] || '',
-      frp: parseFloat(cols[frpIdx]) || 0,
-      type: 'fire'
-    });
-  }
-
-  return fires;
-}
-
