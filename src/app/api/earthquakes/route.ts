@@ -13,7 +13,7 @@ const ARCH_SITES = [
   { name: 'APAC Site 1',    lat: 35.68,  lng: 139.65, type: 'OT Network Segment',  status: 'Scheduled',   score: 2.7 },
   { name: 'APAC Site 2',    lat: 22.32,  lng: 114.17, type: 'ERP Integration',     status: 'Completed',   score: 3.5 },
   { name: 'APAC Site 3',    lat:  1.35,  lng: 103.82, type: 'Zero-Trust Pilot',    status: 'In Progress', score: 4.0 },
-  { name: 'India Site',     lat: 19.08,  lng:  72.88, type: 'Service Mesh',        status: 'Completed',   score: 3.3 },
+  { name: 'India Hub 1',    lat: 19.08,  lng:  72.88, type: 'Service Mesh',        status: 'Completed',   score: 3.3 },
   { name: 'LATAM Node',     lat:-23.55,  lng: -46.63, type: 'Edge Deployment',     status: 'Scheduled',   score: 2.4 },
   { name: 'Nordic Site',    lat: 59.91,  lng:  10.75, type: 'SIEM Architecture',   status: 'Completed',   score: 4.7 },
   { name: 'MEA Node',       lat: 24.45,  lng:  54.38, type: 'Secure Remote Access',status: 'In Progress', score: 3.6 },
@@ -25,7 +25,6 @@ const ARCH_SITES = [
 export async function GET() {
   await delay(400 + Math.random() * 300);
   try {
-    // arch_sites uses the same shape as earthquakes: magnitude→score, place→name
     const arch_sites = ARCH_SITES.map(s => ({
       ...s,
       lat: s.lat, lng: s.lng,
@@ -35,10 +34,10 @@ export async function GET() {
       time: Date.now() - Math.floor(Math.random() * 30 * 86400000),
     }));
     return NextResponse.json(
-      { arch_sites, earthquakes: arch_sites, total: arch_sites.length, timestamp: new Date().toISOString() },
+      { arch_sites, total: arch_sites.length, timestamp: new Date().toISOString() },
       { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' } }
     );
   } catch {
-    return NextResponse.json({ arch_sites: [], earthquakes: [] }, { status: 500 });
+    return NextResponse.json({ arch_sites: [] }, { status: 500 });
   }
 }

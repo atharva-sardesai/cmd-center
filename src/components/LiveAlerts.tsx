@@ -62,7 +62,7 @@ export default function LiveAlerts({ data, onLocate }: LiveAlertsProps) {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-[var(--alert-orange)] animate-osiris-pulse" />
+          <div className="w-1.5 h-1.5 rounded-full bg-[var(--alert-orange)] animate-sentinel-pulse" />
           {expanded ? <ChevronUp className="w-3.5 h-3.5 text-[var(--text-muted)]" /> : <ChevronDown className="w-3.5 h-3.5 text-[var(--text-muted)]" />}
         </div>
       </button>

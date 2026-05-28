@@ -2,11 +2,6 @@
 
 import { useMemo } from 'react';
 
-/* ═══════════════════════════════════════════════════════════════
-   OSIRIS — Scale Bar
-   Dynamic map scale indicator
-   ═══════════════════════════════════════════════════════════════ */
-
 interface ScaleBarProps {
   zoom: number;
   latitude: number;

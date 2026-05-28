@@ -68,7 +68,7 @@ Three external services are used for non-data functions:
 | Google Fonts (JetBrains Mono, Inter) | Typography |
 
 All other data comes from local mock routes. There are no outbound calls to
-OpenSky, NASA, GDELT, NVD, AIS, USGS, or any other data provider.
+third-party intelligence, telemetry, market, or live-feed providers.
 
 ---
 

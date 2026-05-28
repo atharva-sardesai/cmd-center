@@ -59,10 +59,10 @@ export async function GET() {
     }
     const total = SITE_CLUSTERS.reduce((a, s) => a + s.count, 0);
     return NextResponse.json(
-      { ot_assets, fires: ot_assets, total, timestamp: new Date().toISOString() },
+      { ot_assets, total, timestamp: new Date().toISOString() },
       { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' } }
     );
   } catch {
-    return NextResponse.json({ ot_assets: [], fires: [] }, { status: 500 });
+    return NextResponse.json({ ot_assets: [] }, { status: 500 });
   }
 }

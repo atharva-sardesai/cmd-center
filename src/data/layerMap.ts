@@ -2,7 +2,7 @@
  * layerMap.ts — single source of truth for all Sentinel Command Center layer definitions.
  *
  * Import LAYER_GROUPS and LAYER_MAP from here.  Never define a layer label or key
- * anywhere else in the UI — LayerPanel, OsirisMap, and page.tsx all reference this file.
+ * anywhere else in the UI — LayerPanel, CommandMap, and page.tsx all reference this file.
  *
  * The API endpoint listed for each layer is the /api/* route whose mock body populates
  * the corresponding dataKeys.  To connect live data, replace that route's body; the

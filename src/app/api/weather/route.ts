@@ -33,10 +33,10 @@ export async function GET() {
       source: 'Campaign Engine',
     }));
     return NextResponse.json(
-      { campaign_events, events: campaign_events, total: campaign_events.length, timestamp: new Date().toISOString() },
+      { campaign_events, total: campaign_events.length, timestamp: new Date().toISOString() },
       { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' } }
     );
   } catch {
-    return NextResponse.json({ campaign_events: [], events: [] }, { status: 500 });
+    return NextResponse.json({ campaign_events: [] }, { status: 500 });
   }
 }

@@ -56,13 +56,6 @@ export async function GET() {
           name: `${site.name} / ${cat} #${i + 1}`,
           lat: jitter(site.lat, 0.3),
           lng: jitter(site.lng, 0.3),
-          city: site.name,
-          country: 'INTERNAL',
-          source: 'IT Registry',
-          feed_url: null,
-          stream_url: null,
-          stream_type: null,
-          external_url: null,
           category: cat,
           site: site.name,
           total_assets: total,
@@ -70,10 +63,10 @@ export async function GET() {
       }
     }
     return NextResponse.json(
-      { cameras: it_assets, it_assets, total: IT_SITES.reduce((a, s) => a + s.servers + s.endpoints + s.network + s.cloud, 0), timestamp: new Date().toISOString() },
+      { it_assets, total: IT_SITES.reduce((a, s) => a + s.servers + s.endpoints + s.network + s.cloud, 0), timestamp: new Date().toISOString() },
       { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' } }
     );
   } catch {
-    return NextResponse.json({ cameras: [], it_assets: [] }, { status: 500 });
+    return NextResponse.json({ it_assets: [] }, { status: 500 });
   }
 }

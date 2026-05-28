@@ -145,7 +145,7 @@ function CommandMap({
           'circle-stroke-color': '#FF6B00', 'circle-stroke-opacity': 0.4,
         } });
 
-      // ── Architecture Reviews ── (amber, sized by review score like earthquake magnitude)
+      // ── Architecture Reviews ──
       map.addLayer({ id: 'arch-circles', type: 'circle', source: 'arch-reviews',
         paint: {
           'circle-radius': ['interpolate',['linear'],['get','score'], 1,4, 3,8, 5,16],
@@ -193,13 +193,13 @@ function CommandMap({
           'text-offset': [0, 2], 'text-max-width': 14, 'text-allow-overlap': false },
         paint: { 'text-color': '#FF9500', 'text-halo-color': '#000', 'text-halo-width': 1, 'text-opacity': 0.9 } });
 
-      // ── OT Asset Registry ── (dense scatter like fire hotspots)
+      // ── OT Asset Registry ──
       map.addLayer({ id: 'ot-heat', type: 'circle', source: 'ot-assets',
         paint: { 'circle-radius': ['interpolate',['linear'],['zoom'], 1,2, 5,4, 10,8],
           'circle-color': ['match',['get','criticality'], 'CRITICAL','#FF1744', 'HIGH','#FF9500', '#76FF03'],
           'circle-opacity': 0.6, 'circle-blur': 0.4 } });
 
-      // ── IT Asset Registry ── (like CCTV sites)
+      // ── IT Asset Registry ──
       map.addLayer({ id: 'it-glow', type: 'circle', source: 'it-assets',
         paint: { 'circle-radius': ['interpolate',['linear'],['zoom'], 1,5, 5,8, 10,14, 14,20],
           'circle-color': '#00E676', 'circle-opacity': 0.08, 'circle-blur': 1 } });
@@ -209,7 +209,7 @@ function CommandMap({
           'circle-opacity': 0.8,
           'circle-stroke-width': 2, 'circle-stroke-color': '#00E676', 'circle-stroke-opacity': 0.5 } });
 
-      // ── Simulated Campaigns ── (like weather events)
+      // ── Simulated Campaigns ──
       map.addLayer({ id: 'campaign-glow', type: 'circle', source: 'campaigns',
         paint: { 'circle-radius': ['interpolate',['linear'],['zoom'], 1,12, 5,20, 10,30],
           'circle-color': '#E040FB', 'circle-opacity': 0.1, 'circle-blur': 1 } });
@@ -232,7 +232,7 @@ function CommandMap({
           'circle-color': '#D4AF37', 'circle-opacity': 0.9,
           'circle-stroke-width': 1.5, 'circle-stroke-color': '#FFF8DC', 'circle-stroke-opacity': 0.6 } });
 
-      // ── Access Recertification ── (red dots like GDELT)
+      // ── Access Recertification ──
       map.addLayer({ id: 'access-glow', type: 'circle', source: 'access-recert',
         paint: { 'circle-radius': ['interpolate',['linear'],['get','overdue'], 0,6, 20,12, 50,20],
           'circle-color': '#FF3D3D', 'circle-opacity': 0.1, 'circle-blur': 1 } });
@@ -242,7 +242,7 @@ function CommandMap({
           'circle-opacity': 0.85,
           'circle-stroke-width': 1, 'circle-stroke-color': '#FF3D3D', 'circle-stroke-opacity': 0.3 } });
 
-      // ── App Governance ── (lavender scatter like satellite dots)
+      // ── App Governance ──
       map.addLayer({ id: 'gov-dots', type: 'circle', source: 'app-governance',
         paint: { 'circle-radius': ['interpolate',['linear'],['zoom'], 1,2, 5,4, 10,6],
           'circle-color': ['get','color'], 'circle-opacity': 0.8 } });

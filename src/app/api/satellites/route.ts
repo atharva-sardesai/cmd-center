@@ -6,9 +6,6 @@ import { NextResponse } from 'next/server';
 const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 // Fictional application portfolio for App Governance
-// Spread around the globe as if each app's risk were a satellite orbit dot
-const APP_STATUSES = ['Compliant','Review Due','Non-Compliant','Decommissioning'] as const;
-const APP_MISSIONS = ['Compliant','Review Due','Non-Compliant','Decommissioning'] as const;
 
 const APPS = [
   { name: 'FinCore ERP',         risk: 'LOW',    status: 'Compliant',        lat: 40.71, lng: -74.01, findings: 2  },
@@ -46,10 +43,10 @@ export async function GET() {
       mission: a.status,
     }));
     return NextResponse.json(
-      { governance_apps, satellites: governance_apps, total: governance_apps.length, timestamp: new Date().toISOString() },
+      { governance_apps, total: governance_apps.length, timestamp: new Date().toISOString() },
       { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' } }
     );
   } catch {
-    return NextResponse.json({ governance_apps: [], satellites: [] }, { status: 500 });
+    return NextResponse.json({ governance_apps: [] }, { status: 500 });
   }
 }

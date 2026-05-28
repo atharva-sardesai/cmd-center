@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 
 const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
-// DLP enforcement points (replaces maritime ports)
+// DLP enforcement points
 const DLP_SITES = [
   { name: 'North Hub — Email Gateway',    lat: 48.85, lng:   2.35, type: 'email',    country: 'EMEA',  policies: 142 },
   { name: 'EMEA Node — Cloud Storage',    lat: 51.51, lng:  -0.13, type: 'cloud',    country: 'EMEA',  policies:  98 },
@@ -17,12 +17,12 @@ const DLP_SITES = [
   { name: 'APAC Site 1 — Cloud Storage',  lat: 35.68, lng: 139.65, type: 'cloud',    country: 'APAC',  policies:  88 },
   { name: 'APAC Site 2 — API Proxy',      lat: 22.32, lng: 114.17, type: 'api',      country: 'APAC',  policies:  61 },
   { name: 'APAC Site 3 — Endpoint DLP',   lat:  1.35, lng: 103.82, type: 'endpoint', country: 'APAC',  policies:  49 },
-  { name: 'India Site — Email Gateway',   lat: 19.08, lng:  72.88, type: 'email',    country: 'APAC',  policies:  92 },
+  { name: 'India Hub 1 — Email Gateway',  lat: 19.08, lng:  72.88, type: 'email',    country: 'APAC',  policies:  92 },
   { name: 'South Hub — Cloud Storage',    lat:-33.87, lng: 151.21, type: 'cloud',    country: 'APAC',  policies:  44 },
   { name: 'MEA Node — API Proxy',         lat: 24.45, lng:  54.38, type: 'api',      country: 'MEA',   policies:  38 },
 ];
 
-// Active DLP incidents (replaces live ships)
+// Active DLP incidents
 const DLP_EVENTS = [
   { name: 'BLOCKED-7821', lat: 48.91, lng:  2.44, type: 'blocked', severity: 'HIGH',     data_type: 'PII'           },
   { name: 'BLOCKED-7822', lat: 51.55, lng: -0.10, type: 'blocked', severity: 'CRITICAL',  data_type: 'Financial'     },
@@ -36,7 +36,7 @@ const DLP_EVENTS = [
   { name: 'BLOCKED-7826', lat: 24.48, lng:  54.40,type: 'blocked', severity: 'HIGH',     data_type: 'PII'           },
 ];
 
-// High-risk data flow chokepoints (replaces maritime chokepoints)
+// High-risk data flow chokepoints
 const DLP_CHOKEPOINTS = [
   { name: 'EMEA → APAC Data Corridor', lat: 25.0, lng:  68.0, traffic: '4.2 TB/day', risk: 'HIGH'     },
   { name: 'AMER → EMEA Backbone',      lat: 45.0, lng: -30.0, traffic: '6.8 TB/day', risk: 'ELEVATED' },
@@ -50,9 +50,6 @@ export async function GET() {
   try {
     return NextResponse.json(
       {
-        ports: DLP_SITES,
-        ships: DLP_EVENTS,
-        chokepoints: DLP_CHOKEPOINTS,
         dlp_sites: DLP_SITES,
         dlp_events: DLP_EVENTS,
         dlp_chokepoints: DLP_CHOKEPOINTS,
@@ -63,6 +60,6 @@ export async function GET() {
       { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' } }
     );
   } catch {
-    return NextResponse.json({ ports: [], ships: [], chokepoints: [], dlp_sites: [], dlp_events: [], dlp_chokepoints: [] }, { status: 500 });
+    return NextResponse.json({ dlp_sites: [], dlp_events: [], dlp_chokepoints: [] }, { status: 500 });
   }
 }

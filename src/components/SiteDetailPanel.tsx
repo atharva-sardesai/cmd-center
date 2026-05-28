@@ -2,8 +2,9 @@
 
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Server, Cpu, Activity, Shield, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import type { SiteRecord, SevLevel, StatusLevel } from '@/data/sites';
+import { LAYER_MAP } from '@/data/layerMap';
 
 interface Props {
   site: SiteRecord | null;
@@ -17,19 +18,19 @@ const STATUS_COLOR: Record<StatusLevel, string> = {
   HEALTHY: '#00E676', WATCH: '#FFD700', CRITICAL: '#FF3D3D',
 };
 
-const DOMAIN_ROWS: { key: keyof SiteRecord['domains']; label: string }[] = [
-  { key: 'exposure',           label: 'Exposure Findings'   },
-  { key: 'app_assurance',      label: 'App Assurance'       },
-  { key: 'arch_reviews',       label: 'Arch Reviews'        },
-  { key: 'dlp',                label: 'Data Loss Prevention'},
-  { key: 'ot_assets',          label: 'OT Asset Registry'   },
-  { key: 'it_assets',          label: 'IT Asset Registry'   },
-  { key: 'awareness',          label: 'Awareness Reach'     },
-  { key: 'sim_campaigns',      label: 'Sim Campaigns'       },
-  { key: 'access_recert',      label: 'Access Recert'       },
-  { key: 'app_governance',     label: 'App Governance'      },
-  { key: 'activity_retention', label: 'Activity Retention'  },
-  { key: 'posture_index',      label: 'Posture Index'       },
+const DOMAIN_ROWS: Array<keyof SiteRecord['domains']> = [
+  'exposure',
+  'app_assurance',
+  'arch_reviews',
+  'dlp',
+  'ot_assets',
+  'it_assets',
+  'awareness',
+  'sim_campaigns',
+  'access_recert',
+  'app_governance',
+  'activity_retention',
+  'posture_index',
 ];
 
 function Stat({ label, value, color }: { label: string; value: string | number; color?: string }) {
@@ -112,9 +113,10 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
             {/* Domain Posture */}
             <Section title="DOMAIN POSTURE">
               <div className="space-y-0.5">
-                {DOMAIN_ROWS.map(({ key, label }) => {
+                {DOMAIN_ROWS.map((key) => {
                   const d = site.domains[key];
                   const c = STATUS_COLOR[d.status];
+                  const label = key === 'posture_index' ? 'Posture Index' : LAYER_MAP[key]?.label ?? key;
                   return (
                     <div key={key} className="flex items-center gap-1.5 py-0.5">
                       <span className="text-[8px] font-mono text-[var(--text-muted)] w-[110px] flex-shrink-0 truncate">{label}</span>

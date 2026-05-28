@@ -37,13 +37,13 @@ const SITES = [
   { name: 'India Hub 15',        lat: 18.52,  lng:  73.86,  region: 'APAC'   },
 ];
 
-const SEVERITIES = ['CRITICAL','HIGH','MEDIUM','LOW'] as const;
+type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
 
 function makeSites() {
   return SITES.map((s, i) => {
     const findings  = 10 + Math.floor(Math.sin(i * 1.3) * 80 + 120);
     const criticals = Math.floor(findings * (0.05 + (i % 4) * 0.03));
-    const sev: typeof SEVERITIES[number] = criticals > 10 ? 'CRITICAL' : criticals > 5 ? 'HIGH' : criticals > 2 ? 'MEDIUM' : 'LOW';
+    const sev: Severity = criticals > 10 ? 'CRITICAL' : criticals > 5 ? 'HIGH' : criticals > 2 ? 'MEDIUM' : 'LOW';
     return { ...s, findings, criticals, severity: sev, score: Math.round(findings / 3) };
   });
 }
