@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import ErrorBoundary from '@/components/ErrorBoundary';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import "./globals.css";
 
 const SITE_NAME = "Sentinel Command Center";
@@ -67,15 +69,13 @@ const jsonLd = {
   },
 };
 
-import ErrorBoundary from '@/components/ErrorBoundary';
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" dir="ltr">
+    <html lang="en" dir="ltr" className="dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -89,9 +89,11 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <ErrorBoundary name="Sentinel Core">
-          {children}
-        </ErrorBoundary>
+        <TooltipProvider>
+          <ErrorBoundary name="Sentinel Core">
+            {children}
+          </ErrorBoundary>
+        </TooltipProvider>
       </body>
     </html>
   );
