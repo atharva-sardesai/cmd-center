@@ -407,6 +407,8 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
+      <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.06)_0%,rgba(34,211,238,0.025)_18%,transparent_40%)]" aria-hidden="true" />
+
       {/* ── MAP ── */}
       <ErrorBoundary name="Map">
         <CommandMap
@@ -557,7 +559,7 @@ export default function Dashboard() {
           <>
             <LayerPanel data={data} activeLayers={activeLayers} setActiveLayers={setActiveLayers} />
             {/* Security Domain KPI summary — re-scopes to selected site */}
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }} className="glass-panel px-3 py-2.5 pointer-events-auto">
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }} className="glass-panel glass-panel-left px-3 py-2.5 pointer-events-auto">
               {selectedSite && (
                 <div className="text-[7px] font-mono text-[var(--cyan-primary)] tracking-widest text-center mb-1.5 opacity-70">
                   SITE: {selectedSite.name.toUpperCase()}

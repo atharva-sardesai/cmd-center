@@ -3,6 +3,7 @@
 import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, ChevronDown, ChevronUp, ToggleLeft, ToggleRight } from 'lucide-react';
+import { GlassPanel } from '@/components/ui/glass-panel';
 import { LAYER_GROUPS, ALL_LAYERS } from '@/data/layerMap';
 import type { StatusLevel } from '@/data/sites';
 
@@ -65,8 +66,10 @@ function LayerPanel({ data, activeLayers, setActiveLayers }: LayerPanelProps) {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.3, duration: 0.6 }}
-      className="glass-panel p-3 pointer-events-auto"
+      className="pointer-events-auto"
     >
+      <GlassPanel variant="left">
+      <div className="p-3">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -195,6 +198,8 @@ function LayerPanel({ data, activeLayers, setActiveLayers }: LayerPanelProps) {
           );
         })}
       </div>
+      </div>
+      </GlassPanel>
     </motion.div>
   );
 }

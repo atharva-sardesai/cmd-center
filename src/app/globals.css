@@ -223,11 +223,11 @@ html, body {
    GLASS PANELS — Premium depth with micro-reflections
    ═══════════════════════════════════════════════════════════════ */
 .glass-panel {
-  background: var(--bg-panel);
-  backdrop-filter: blur(24px) saturate(1.3);
-  -webkit-backdrop-filter: blur(24px) saturate(1.3);
-  border: 1px solid var(--border-primary);
-  border-radius: 14px;
+  background: var(--glass-panel-background);
+  backdrop-filter: blur(22px) saturate(170%);
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
   box-shadow:
     0 4px 30px rgba(0, 0, 0, 0.5),
     0 1px 0 rgba(255, 255, 255, 0.06) inset,
@@ -235,16 +235,36 @@ html, body {
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+.glass-panel-left {
+  background: var(--glass-panel-left-background);
+}
+
 .glass-panel:hover {
   border-color: rgba(34, 211, 238, 0.22);
 }
 
 .glass-panel-sm {
-  background: var(--bg-panel);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border-secondary);
-  border-radius: 10px;
+  background: var(--glass-panel-background);
+  backdrop-filter: blur(22px) saturate(170%);
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.07),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 8px 32px rgba(0, 0, 0, 0.45);
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-panel,
+  .glass-panel-sm,
+  .glass-panel-left {
+    background: rgba(5, 7, 10, 0.96);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 .sentinel-glow {

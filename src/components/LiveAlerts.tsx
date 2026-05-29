@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, MapPin, AlertTriangle, Clock } from 'lucide-react';
+import { GlassPanel } from '@/components/ui/glass-panel';
 
 interface LiveAlertsProps {
   data: any;
@@ -47,8 +48,9 @@ export default function LiveAlerts({ data, onLocate }: LiveAlertsProps) {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.5, duration: 0.6 }}
-      className="glass-panel flex flex-col overflow-hidden pointer-events-auto"
+      className="pointer-events-auto"
     >
+      <GlassPanel className="flex flex-col overflow-hidden">
       <button
         onClick={() => setExpanded(!expanded)}
         className="flex items-center justify-between px-3 py-2 hover:bg-[var(--hover-accent)] transition-colors"
@@ -114,6 +116,7 @@ export default function LiveAlerts({ data, onLocate }: LiveAlertsProps) {
           </motion.div>
         )}
       </AnimatePresence>
+      </GlassPanel>
     </motion.div>
   );
 }

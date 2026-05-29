@@ -106,7 +106,7 @@ function CommandMap({
     if (!containerRef.current || mapRef.current) return;
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+      style: CARTO_NO_LABELS_STYLE,
       center: [10, 20], zoom: 2.0, minZoom: 1.5, maxZoom: 18,
       attributionControl: false,
       maxPitch: 85,
@@ -587,7 +587,7 @@ function CommandMap({
     prevStyleRef.current = mapStyle;
     const newStyle = mapStyle.startsWith('http')
       ? { version: 8 as const, sources: { imagery: { type: 'raster' as const, tiles: [mapStyle], tileSize: 256 } }, layers: [{ id: 'bg', type: 'raster' as const, source: 'imagery' }] }
-      : 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+      : CARTO_NO_LABELS_STYLE;
     map.setStyle(newStyle as any);
   }, [mapReady, mapStyle]);
 

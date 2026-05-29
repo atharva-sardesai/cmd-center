@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
+import { GlassPanel } from '@/components/ui/glass-panel';
 
 interface IntelFeedProps {
   data: any;
@@ -43,8 +44,9 @@ export default function IntelFeed({ data, onLocate }: IntelFeedProps) {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.6, duration: 0.6 }}
-      className="glass-panel flex flex-col overflow-hidden pointer-events-auto"
+      className="pointer-events-auto"
     >
+      <GlassPanel className="flex flex-col overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setExpanded(!expanded)}
@@ -126,6 +128,7 @@ export default function IntelFeed({ data, onLocate }: IntelFeedProps) {
           </motion.div>
         )}
       </AnimatePresence>
+      </GlassPanel>
     </motion.div>
   );
 }
