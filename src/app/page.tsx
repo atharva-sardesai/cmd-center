@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Layers, Newspaper, Search, X, Globe, MapPinned, Moon, Satellite, Activity, Shield, Database, Wifi } from 'lucide-react';
+import { Layers, Newspaper, Search, X, Globe, MapPinned, Moon, Satellite, Shield, Wifi } from 'lucide-react';
 import IntelFeed from '@/components/IntelFeed';
 import SearchBar from '@/components/SearchBar';
 import ScaleBar from '@/components/ScaleBar';
@@ -50,7 +50,7 @@ const UptimeClock = () => {
     }, 1000);
     return () => clearInterval(iv);
   }, []);
-  return <span className="hidden lg:inline">UPTIME: <span className="text-[var(--cyan-primary)]">{uptime}</span></span>;
+  return <span className="hidden lg:inline-flex items-center gap-1 font-mono text-[14px] font-normal tabular-nums text-[var(--text-secondary)]"><span className="text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">UPTIME</span> {uptime}</span>;
 };
 
 const ZuluClock = () => {
@@ -62,19 +62,10 @@ const ZuluClock = () => {
     }, 1000);
     return () => clearInterval(iv);
   }, []);
-  return <span className="text-[var(--cyan-primary)] font-bold tabular-nums">{time || 'ZULU --:--:--Z'}</span>;
+  return <span className="font-mono text-[14px] font-normal tabular-nums text-[var(--accent-primary)]">{time || 'ZULU --:--:--Z'}</span>;
 };
 
-const DataThroughput = () => {
-  const [throughput, setThroughput] = useState('0.0');
-  useEffect(() => {
-    const iv = setInterval(() => {
-      setThroughput((1.2 + Math.random() * 3.6).toFixed(1));
-    }, 2500);
-    return () => clearInterval(iv);
-  }, []);
-  return <span className="text-[var(--alert-green)] font-bold tabular-nums">{throughput} MB/s</span>;
-};
+
 
 export default function Dashboard() {
   const dataRef = useRef<any>({});
@@ -85,7 +76,7 @@ export default function Dashboard() {
   const [mapView, setMapView] = useState({ zoom: 2.0, latitude: 20 });
   const [flyToLocation, setFlyToLocation] = useState<{ lat: number; lng: number; ts: number } | null>(null);
   const [mouseCoords, setMouseCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [locationLabel, setLocationLabel] = useState('');
+  const [, setLocationLabel] = useState('');
   const [regionDossier, setRegionDossier] = useState<any>(null);
   const [dossierLoading, setDossierLoading] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
@@ -100,7 +91,9 @@ export default function Dashboard() {
   const geocodeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastGeocodedPos = useRef<{ lat: number; lng: number } | null>(null);
 
-  const [activeLayers, setActiveLayers] = useState(DEFAULT_ACTIVE_LAYERS);
+  const [activeLayers, setActiveLayers] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(Object.keys(DEFAULT_ACTIVE_LAYERS).map(key => [key, false]))
+  );
   const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null);
   const selectedSite = selectedSiteId ? MASTER_SITES.find(s => s.id === selectedSiteId) ?? null : null;
 
@@ -256,7 +249,7 @@ export default function Dashboard() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8, ease: 'easeInOut' }}
             className="absolute inset-0 z-[999] flex flex-col items-center justify-center overflow-hidden"
-            style={{ background: 'radial-gradient(ellipse at center, #0a0a14 0%, var(--bg-void) 70%)' }}
+            style={{ background: 'radial-gradient(ellipse at center, #0B0E14 0%, var(--bg-void) 70%)' }}
           >
             <div className="absolute inset-0 pointer-events-none z-[1]" style={{
               backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,229,255,0.012) 2px, rgba(0,229,255,0.012) 4px)',
@@ -264,7 +257,7 @@ export default function Dashboard() {
             }} />
 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} transition={{ delay: 0.8, duration: 0.5 }}
-              className="absolute top-6 left-6 z-[2] font-mono text-[10px] tracking-[0.3em] text-[var(--cyan-primary)]">
+              className="absolute top-6 left-6 z-[2] font-mono text-[12px] tracking-[0.3em] text-[var(--cyan-primary)]">
               DEMO MODE
             </motion.div>
 
@@ -326,7 +319,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
                   animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                   transition={{ delay: 0.5 + i * 0.07, duration: 0.5, ease: 'easeOut' }}
-                  className="text-4xl md:text-5xl font-bold tracking-[0.5em] font-mono"
+                  className="text-[32px] md:text-[32px] font-bold tracking-[0.5em] font-mono"
                   style={{ color: 'var(--text-heading)', textShadow: '0 0 30px rgba(0,229,255,0.2)' }}
                 >
                   {letter}
@@ -337,7 +330,7 @@ export default function Dashboard() {
             {/* Subtitle */}
             <div className="overflow-hidden mb-8 z-[2]">
               <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ delay: 1.2, duration: 0.8, ease: 'easeInOut' }} className="overflow-hidden whitespace-nowrap">
-                <p className="text-[10px] md:text-[11px] font-mono tracking-[0.5em] text-[var(--cyan-primary)]" style={{ opacity: 0.8 }}>
+                <p className="text-[12px] md:text-[12px] font-mono tracking-[0.5em] text-[var(--cyan-primary)]" style={{ opacity: 0.8 }}>
                   SECURITY COMMAND CENTER
                 </p>
               </motion.div>
@@ -365,7 +358,7 @@ export default function Dashboard() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: [0, 1, 1, 0] }}
                     transition={{ delay: stage.delay, duration: 0.6, times: [0, 0.1, 0.7, 1] }}
-                    className="absolute text-[9px] font-mono tracking-[0.25em]"
+                    className="absolute text-[12px] font-mono tracking-[0.25em]"
                     style={{ color: i === 3 ? 'var(--cyan-primary)' : 'var(--text-muted)' }}
                   >
                     {stage.text}
@@ -405,6 +398,8 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
+      <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.06)_0%,rgba(34,211,238,0.025)_18%,transparent_40%)]" aria-hidden="true" />
+
       {/* ── MAP ── */}
       <ErrorBoundary name="Map">
         <CommandMap
@@ -439,7 +434,7 @@ export default function Dashboard() {
           {mapProjection === 'globe'
             ? <MapPinned className="w-4 h-4 text-[var(--cyan-primary)] group-hover:scale-110 transition-transform" />
             : <Globe className="w-4 h-4 text-[var(--cyan-primary)] group-hover:scale-110 transition-transform" />}
-          <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 text-[9px] font-mono text-[var(--text-muted)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity glass-panel px-2 py-1 z-[300]">
+          <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 text-[12px] font-mono text-[var(--text-muted)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity glass-panel px-2 py-1 z-[300]">
             {mapProjection === 'globe' ? '2D MAP' : '3D GLOBE'}
           </span>
         </button>
@@ -452,97 +447,83 @@ export default function Dashboard() {
           {mapStyle === 'dark'
             ? <Satellite className="w-4 h-4 text-[var(--alert-green)] group-hover:scale-110 transition-transform" />
             : <Moon className="w-4 h-4 text-[var(--cyan-primary)] group-hover:scale-110 transition-transform" />}
-          <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 text-[9px] font-mono text-[var(--text-muted)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity glass-panel px-2 py-1 z-[300]">
+          <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 text-[12px] font-mono text-[var(--text-muted)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity glass-panel px-2 py-1 z-[300]">
             {mapStyle === 'dark' ? 'SATELLITE' : 'NIGHT MODE'}
           </span>
         </button>
       </motion.div>
 
       {/* ── HEADER ── */}
-      <motion.div
+      <motion.header
         initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 2.5 }}
-        className="absolute top-3 left-3 md:top-5 md:left-5 z-[200] pointer-events-none flex items-center gap-2 md:gap-3"
+        className="absolute left-0 right-0 top-0 z-[220] flex h-[52px] items-center justify-between px-5 pointer-events-none"
       >
-        <div className="w-7 h-7 md:w-9 md:h-9 flex items-center justify-center relative">
-          <div className="absolute inset-[-4px] md:inset-[-5px] rounded-full border border-[var(--cyan-primary)]/20" style={{ animation: 'sentinel-rotate 12s linear infinite' }}>
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-[var(--cyan-primary)] shadow-[0_0_6px_var(--cyan-primary)]" />
+        <div className="flex items-center gap-3">
+          <div className="relative flex h-8 w-8 items-center justify-center">
+            <div className="absolute inset-[-4px] rounded-full border border-[var(--accent-primary)]/20" style={{ animation: 'sentinel-rotate 12s linear infinite' }} />
+            <div className="h-7 w-7 rounded-full border-2 border-[var(--accent-primary)] flex items-center justify-center animate-glow-pulse">
+              <div className="h-3 w-3 rounded-full bg-[var(--accent-primary)]/30 border border-[var(--accent-primary)]/60" />
+            </div>
+            <div className="absolute h-full w-px bg-[var(--accent-primary)]/30" />
+            <div className="absolute h-px w-full bg-[var(--accent-primary)]/30" />
           </div>
-          <div className="absolute inset-[-8px] md:inset-[-10px] rounded-full border border-[var(--cyan-primary)]/10" style={{ animation: 'sentinel-rotate 20s linear infinite reverse' }}>
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-0.5 h-0.5 rounded-full bg-[var(--cyan-primary)]/60" />
+          <div className="flex flex-col">
+            <h1 className="font-mono text-[18px] font-medium tracking-[0.5em] text-[var(--text-primary)]">SENTINEL</h1>
+            <span className="font-mono text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--accent-primary)]">Command Center</span>
           </div>
-          <div className="w-5 h-5 md:w-7 md:h-7 rounded-full border-2 border-[var(--cyan-primary)] flex items-center justify-center animate-glow-pulse">
-            <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 rounded-full bg-[var(--cyan-primary)]/30 border border-[var(--cyan-primary)]/60" />
-          </div>
-          <div className="absolute w-[1px] h-full bg-[var(--cyan-primary)]/30" />
-          <div className="absolute w-full h-[1px] bg-[var(--cyan-primary)]/30" />
         </div>
-        <div className="hidden md:block absolute top-1/2 left-[52px] w-[200px] h-[1px] bg-gradient-to-r from-[var(--cyan-primary)]/40 via-[var(--cyan-primary)]/15 to-transparent" />
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <h1 className="text-base md:text-xl font-bold tracking-[0.4em] md:tracking-[0.5em] text-[var(--text-heading)] font-mono">SENTINEL</h1>
-          </div>
-          <span className="text-[8px] md:text-[9px] text-[var(--cyan-primary)] font-mono tracking-[0.2em] md:tracking-[0.3em] opacity-80">COMMAND CENTER</span>
-        </div>
-      </motion.div>
 
-      {/* ── VIEWING CHIP ── */}
-      <AnimatePresence>
-        {selectedSite && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            className="absolute top-3 left-1/2 -translate-x-1/2 z-[250] flex items-center gap-2 pointer-events-auto"
-            style={{ background: 'rgba(0,16,24,0.85)', border: '1px solid rgba(0,229,255,0.35)', borderRadius: 6, padding: '4px 10px', backdropFilter: 'blur(12px)' }}
-          >
-            <span className="text-[8px] font-mono tracking-widest text-[var(--text-muted)]">VIEWING</span>
-            <span className="text-[9px] font-mono font-bold text-[var(--cyan-primary)] tracking-wider">{selectedSite.name}</span>
-            <button
-              onClick={() => setSelectedSiteId(null)}
-              className="ml-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+        <AnimatePresence>
+          {selectedSite && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="pointer-events-auto flex items-center gap-2 rounded-full border border-[var(--accent-primary)] bg-[var(--accent-primary)]/[0.08] px-3 py-1"
             >
-              <X className="w-3 h-3" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <span className="text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">Viewing</span>
+              <span className="text-[14px] font-normal text-[var(--text-primary)]">{selectedSite.name}</span>
+              <button
+                onClick={() => setSelectedSiteId(null)}
+                className="text-[var(--text-tertiary)] transition-colors hover:text-[var(--text-primary)]"
+                aria-label="Clear selected site"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      {/* ── TOP-RIGHT STATUS ── */}
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 3 }}
-        className="absolute top-3 right-3 md:top-4 md:right-5 z-[200] pointer-events-none flex items-center gap-1.5 md:gap-3 text-[9px] md:text-[10px] font-mono tracking-widest text-[var(--text-muted)]"
-      >
-        <span className="hidden lg:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm border border-[var(--border-primary)] bg-black/30">
+        <div className="hidden items-center gap-6 lg:flex font-mono text-[14px] font-normal tabular-nums text-[var(--text-secondary)]">
           <ZuluClock />
-        </span>
-        <span className="hidden lg:inline text-[var(--border-primary)]">│</span>
-        <span className="flex items-center gap-1">SYS: <span className={backendStatus === 'connected' ? 'text-[var(--alert-green)]' : 'text-[var(--alert-red)]'}>{backendStatus.toUpperCase()}</span></span>
-        {data.posture_score !== undefined && (
-          <>
-            <span className="hidden lg:inline text-[var(--border-primary)]">│</span>
-            <span className="hidden lg:inline-flex items-center gap-1.5">
-              <Shield className="w-3 h-3 text-[var(--cyan-primary)]" />
-              <span className="text-[var(--text-muted)]">POSTURE</span>
-              <span className="font-bold tabular-nums" style={{ color: data.posture_score >= 80 ? '#00E676' : data.posture_score >= 65 ? '#FFD700' : '#FF3D3D' }}>
+          <span className="flex items-center gap-1">
+            <span className="text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">SYS:</span>
+            <span className={backendStatus === 'connected' ? 'text-[var(--status-healthy)]' : 'text-[var(--status-critical)]'}>{backendStatus.toUpperCase()}</span>
+          </span>
+          {data.posture_score !== undefined && (
+            <span className="flex items-center gap-1">
+              <Shield className="h-3 w-3 text-[var(--accent-primary)]" />
+              <span className="text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">POSTURE</span>
+              <span style={{ color: data.posture_score >= 80 ? 'var(--status-healthy)' : data.posture_score >= 65 ? 'var(--status-watch)' : 'var(--status-critical)' }}>
                 {data.posture_score}/100
               </span>
             </span>
-          </>
-        )}
-        <span className="hidden lg:inline-flex items-center gap-1">
-          <Wifi className="w-3 h-3 text-[var(--cyan-primary)]" />
-          <span className="text-[var(--cyan-primary)] font-bold">{Object.values(activeLayers).filter(Boolean).length}</span>
-          <span className="text-[var(--text-muted)]/60">FEEDS</span>
-        </span>
-        <UptimeClock />
-      </motion.div>
+          )}
+          <span className="flex items-center gap-1">
+            <Wifi className="h-3 w-3 text-[var(--accent-primary)]" />
+            <span>{Object.values(activeLayers).filter(Boolean).length}</span>
+            <span className="text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">FEEDS</span>
+          </span>
+          <UptimeClock />
+        </div>
+      </motion.header>
 
       {/* ── MOBILE: Compact top status ── */}
       {isMobile && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.5 }}
           className="absolute top-3 right-3 z-[200] pointer-events-auto flex items-center gap-2">
-          <div className="glass-panel px-2 py-1 flex items-center gap-1.5 text-[7px] font-mono tracking-widest">
+          <div className="glass-panel px-2 py-1 flex items-center gap-1.5 text-[12px] font-mono tracking-widest">
             <div className="w-1 h-1 rounded-full bg-[var(--alert-green)] animate-sentinel-pulse" />
             <span className="text-[var(--alert-green)] font-bold">LIVE</span>
           </div>
@@ -550,33 +531,33 @@ export default function Dashboard() {
       )}
 
       {/* ── LEFT HUD (desktop) ── */}
-      <div className="desktop-panel absolute left-5 top-20 bottom-24 w-72 flex flex-col gap-3 z-[200] pointer-events-none overflow-y-auto styled-scrollbar pr-1">
+      <div className="desktop-panel absolute left-5 top-16 bottom-12 w-72 flex flex-col gap-3 z-[200] pointer-events-none overflow-y-auto styled-scrollbar pr-1">
         {showLayers && (
           <>
-            <LayerPanel data={data} activeLayers={activeLayers} setActiveLayers={setActiveLayers} />
+            <LayerPanel data={data} activeLayers={activeLayers} setActiveLayers={setActiveLayers} selectedSite={selectedSite} />
             {/* Security Domain KPI summary — re-scopes to selected site */}
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }} className="glass-panel px-3 py-2.5 pointer-events-auto">
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }} className="glass-panel glass-panel-left px-3 py-2.5 pointer-events-auto">
               {selectedSite && (
-                <div className="text-[7px] font-mono text-[var(--cyan-primary)] tracking-widest text-center mb-1.5 opacity-70">
+                <div className="text-[12px] font-mono text-[var(--cyan-primary)] tracking-widest text-center mb-1.5 opacity-70">
                   SITE: {selectedSite.name.toUpperCase()}
                 </div>
               )}
               <div className="grid grid-cols-5 gap-2 text-center">
                 <div>
                   <div className="hud-label">FINDINGS</div>
-                  <div className="hud-value text-[10px] animate-data-pulse" style={{ color: '#00E5FF' }}>
+                  <div className="hud-value text-[12px] animate-data-pulse" style={{ color: 'var(--accent-primary)' }}>
                     {selectedSite ? selectedSite.domains.exposure.findings : (data.exposure_sites?.length||0).toLocaleString()}
                   </div>
                 </div>
                 <div>
                   <div className="hud-label">APPS</div>
-                  <div className="hud-value text-[10px]">
+                  <div className="hud-value text-[12px]">
                     {selectedSite ? selectedSite.domains.app_assurance.findings : (data.assurance_events?.length||0).toLocaleString()}
                   </div>
                 </div>
                 <div>
                   <div className="hud-label">ASSETS</div>
-                  <div className="hud-value text-[10px]" style={{ color: '#00E676' }}>
+                  <div className="hud-value text-[12px]" style={{ color: 'var(--status-healthy)' }}>
                     {selectedSite
                       ? (selectedSite.domains.it_assets.servers + selectedSite.domains.it_assets.endpoints + selectedSite.domains.it_assets.network + selectedSite.domains.it_assets.cloud + selectedSite.domains.ot_assets.plcs + selectedSite.domains.ot_assets.hmis + selectedSite.domains.ot_assets.scada).toLocaleString()
                       : ((data.it_assets?.length||0)+(data.ot_assets?.length||0)).toLocaleString()}
@@ -584,13 +565,13 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <div className="hud-label">CAMPAIGNS</div>
-                  <div className="hud-value text-[10px]" style={{ color: '#E040FB' }}>
+                  <div className="hud-value text-[12px]" style={{ color: 'var(--accent-primary)' }}>
                     {selectedSite ? selectedSite.domains.sim_campaigns.sent : (data.campaign_events?.length||0).toLocaleString()}
                   </div>
                 </div>
                 <div>
                   <div className="hud-label">ACCESS</div>
-                  <div className="hud-value text-[10px]" style={{ color: '#FFD700' }}>
+                  <div className="hud-value text-[12px]" style={{ color: 'var(--status-watch)' }}>
                     {selectedSite ? selectedSite.domains.access_recert.overdue : (data.access_events?.length||0).toLocaleString()}
                   </div>
                 </div>
@@ -603,7 +584,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── RIGHT HUD (desktop) ── */}
-      <div className="desktop-panel absolute right-5 top-20 bottom-24 w-80 flex flex-col gap-3 z-[200] pointer-events-auto overflow-y-auto styled-scrollbar pr-1">
+      <div className="desktop-panel absolute right-5 top-16 bottom-12 w-80 flex flex-col gap-3 z-[200] pointer-events-auto overflow-y-auto styled-scrollbar pr-1">
         <div className="flex gap-2 items-start">
           <div className="flex-1"><SearchBar onLocate={(lat, lng) => setFlyToLocation({ lat, lng, ts: Date.now() })} /></div>
           <div className="relative"><SharePanel mapView={mapView} activeLayers={activeLayers} mouseCoords={mouseCoords} /></div>
@@ -612,7 +593,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── SITE DETAIL PANEL (desktop) — slides over the right HUD ── */}
-      <div className="desktop-panel absolute right-5 top-20 bottom-24 w-80 z-[350] pointer-events-none">
+      <div className="desktop-panel absolute right-5 top-16 bottom-12 w-80 z-[350] pointer-events-none">
         <SiteDetailPanel site={selectedSite} onClose={() => setSelectedSiteId(null)} />
       </div>
 
@@ -646,7 +627,7 @@ export default function Dashboard() {
                 <div className="mobile-drawer-handle" />
                 <div className="px-3 pb-3">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="hud-text text-[9px] text-[var(--text-primary)]">
+                    <span className="hud-text text-[12px] text-[var(--text-primary)]">
                       {mobilePanel === 'layers' ? 'SECURITY DOMAINS' : mobilePanel === 'intel' ? 'ACTIVITY FEED' : 'SEARCH'}
                     </span>
                     <button onClick={() => setMobilePanel(null)} className="text-[var(--text-muted)] p-1"><X className="w-4 h-4" /></button>
@@ -655,14 +636,14 @@ export default function Dashboard() {
                     <>
                       <div className="glass-panel-sm p-2 mb-2">
                         <div className="grid grid-cols-5 gap-1 text-center">
-                          <div><div className="hud-label" style={{fontSize:'6px'}}>FINDINGS</div><div className="hud-value text-[9px]" style={{color:'#00E5FF'}}>{selectedSite ? selectedSite.domains.exposure.findings : data.exposure_sites?.length||0}</div></div>
-                          <div><div className="hud-label" style={{fontSize:'6px'}}>APPS</div><div className="hud-value text-[9px]">{selectedSite ? selectedSite.domains.app_assurance.findings : data.assurance_events?.length||0}</div></div>
-                          <div><div className="hud-label" style={{fontSize:'6px'}}>ASSETS</div><div className="hud-value text-[9px]" style={{color:'#00E676'}}>{selectedSite ? (selectedSite.domains.it_assets.servers+selectedSite.domains.it_assets.endpoints+selectedSite.domains.it_assets.network+selectedSite.domains.it_assets.cloud+selectedSite.domains.ot_assets.plcs+selectedSite.domains.ot_assets.hmis+selectedSite.domains.ot_assets.scada) : (data.it_assets?.length||0)+(data.ot_assets?.length||0)}</div></div>
-                          <div><div className="hud-label" style={{fontSize:'6px'}}>CAMP</div><div className="hud-value text-[9px]" style={{color:'#E040FB'}}>{selectedSite ? selectedSite.domains.sim_campaigns.sent : data.campaign_events?.length||0}</div></div>
-                          <div><div className="hud-label" style={{fontSize:'6px'}}>ACCESS</div><div className="hud-value text-[9px]" style={{color:'#FFD700'}}>{selectedSite ? selectedSite.domains.access_recert.overdue : data.access_events?.length||0}</div></div>
+                          <div><div className="hud-label" style={{fontSize:'6px'}}>FINDINGS</div><div className="hud-value text-[12px]" style={{color:'var(--accent-primary)'}}>{selectedSite ? selectedSite.domains.exposure.findings : data.exposure_sites?.length||0}</div></div>
+                          <div><div className="hud-label" style={{fontSize:'6px'}}>APPS</div><div className="hud-value text-[12px]">{selectedSite ? selectedSite.domains.app_assurance.findings : data.assurance_events?.length||0}</div></div>
+                          <div><div className="hud-label" style={{fontSize:'6px'}}>ASSETS</div><div className="hud-value text-[12px]" style={{color:'var(--status-healthy)'}}>{selectedSite ? (selectedSite.domains.it_assets.servers+selectedSite.domains.it_assets.endpoints+selectedSite.domains.it_assets.network+selectedSite.domains.it_assets.cloud+selectedSite.domains.ot_assets.plcs+selectedSite.domains.ot_assets.hmis+selectedSite.domains.ot_assets.scada) : (data.it_assets?.length||0)+(data.ot_assets?.length||0)}</div></div>
+                          <div><div className="hud-label" style={{fontSize:'6px'}}>CAMP</div><div className="hud-value text-[12px]" style={{color:'var(--accent-primary)'}}>{selectedSite ? selectedSite.domains.sim_campaigns.sent : data.campaign_events?.length||0}</div></div>
+                          <div><div className="hud-label" style={{fontSize:'6px'}}>ACCESS</div><div className="hud-value text-[12px]" style={{color:'var(--status-watch)'}}>{selectedSite ? selectedSite.domains.access_recert.overdue : data.access_events?.length||0}</div></div>
                         </div>
                       </div>
-                      <LayerPanel data={data} activeLayers={activeLayers} setActiveLayers={setActiveLayers} />
+                      <LayerPanel data={data} activeLayers={activeLayers} setActiveLayers={setActiveLayers} selectedSite={selectedSite} />
                       <div className="mt-2">
                         <ViewPresets onNavigate={(lat, lng, zoom) => { setFlyToLocation({ lat, lng, ts: Date.now() }); setMapView(v => ({ ...v, zoom })); setMobilePanel(null); }} />
                       </div>
@@ -682,58 +663,8 @@ export default function Dashboard() {
         </>
       )}
 
-      {/* ── BOTTOM CENTER (desktop) ── */}
-      {!isMobile && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 3, duration: 0.8 }} className="desktop-only absolute bottom-5 left-1/2 -translate-x-1/2 z-[200] pointer-events-auto">
-          <div className="glass-panel px-5 py-2.5 flex items-center gap-0 relative overflow-hidden" style={{ borderImage: 'linear-gradient(90deg, rgba(0,229,255,0.05), rgba(0,229,255,0.2), rgba(0,229,255,0.05)) 1', borderImageSlice: 1, borderWidth: '1px', borderStyle: 'solid' }}>
-            <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-              <div className="absolute top-0 bottom-0 w-[60px] bg-gradient-to-r from-transparent via-[var(--cyan-primary)]/[0.07] to-transparent" style={{ animation: 'hud-scanline 4s ease-in-out infinite' }} />
-            </div>
-
-            <div className="flex flex-col items-center min-w-[110px] px-3">
-              <div className="hud-label">COORDINATES</div>
-              <div className="text-[10px] font-mono font-bold text-[var(--cyan-primary)] tracking-wide tabular-nums">{mouseCoords ? `${mouseCoords.lat.toFixed(4)}, ${mouseCoords.lng.toFixed(4)}` : '—'}</div>
-            </div>
-            <div className="w-px h-8 bg-gradient-to-b from-transparent via-[var(--border-primary)] to-transparent flex-shrink-0" />
-            <div className="flex flex-col items-center min-w-[160px] max-w-[280px] px-3">
-              <div className="hud-label">LOCATION</div>
-              <div className="text-[9px] text-[var(--text-secondary)] font-mono truncate max-w-[280px]">{locationLabel || 'Hover over map...'}</div>
-            </div>
-            <div className="w-px h-8 bg-gradient-to-b from-transparent via-[var(--border-primary)] to-transparent flex-shrink-0" />
-            <div className="flex flex-col items-center px-3">
-              <div className="hud-label">ZOOM</div>
-              <div className="text-[10px] font-mono font-bold text-[var(--cyan-primary)] tabular-nums">{mapView.zoom.toFixed(1)}</div>
-            </div>
-            <div className="w-px h-8 bg-gradient-to-b from-transparent via-[var(--border-primary)] to-transparent flex-shrink-0" />
-            <div className="flex flex-col items-center px-3 min-w-[60px]">
-              <div className="hud-label">ACTIVE LAYERS</div>
-              <div className="flex items-center gap-1">
-                <Layers className="w-3 h-3 text-[var(--cyan-primary)]" />
-                <span className="text-[10px] font-mono font-bold text-[var(--cyan-primary)] tabular-nums">{Object.values(activeLayers).filter(Boolean).length}</span>
-              </div>
-            </div>
-            <div className="w-px h-8 bg-gradient-to-b from-transparent via-[var(--border-primary)] to-transparent flex-shrink-0" />
-            <div className="flex flex-col items-center px-3 min-w-[60px]">
-              <div className="hud-label">FEEDS</div>
-              <div className="flex items-center gap-1">
-                <Activity className="w-3 h-3 text-[var(--cyan-primary)]" />
-                <span className="text-[10px] font-mono font-bold text-[var(--cyan-primary)] tabular-nums">{Object.values(activeLayers).filter(Boolean).length}</span>
-              </div>
-            </div>
-            <div className="w-px h-8 bg-gradient-to-b from-transparent via-[var(--border-primary)] to-transparent flex-shrink-0" />
-            <div className="flex flex-col items-center px-3 min-w-[70px]">
-              <div className="hud-label">THROUGHPUT</div>
-              <div className="flex items-center gap-1">
-                <Database className="w-3 h-3 text-[var(--alert-green)]" />
-                <DataThroughput />
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
       {/* ── Scale Bar ── */}
-      <div className="desktop-only absolute bottom-[4.5rem] left-[20rem] z-[201] pointer-events-none">
+      <div className="desktop-only absolute bottom-12 left-[20rem] z-[201] pointer-events-none">
         <ScaleBar zoom={mapView.zoom} latitude={mapView.latitude} />
       </div>
 
@@ -741,30 +672,30 @@ export default function Dashboard() {
       {(regionDossier || dossierLoading) && (
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="absolute top-16 md:top-20 left-2 right-2 md:left-1/2 md:right-auto md:-translate-x-1/2 z-[300] md:w-[480px] max-h-[65vh] overflow-y-auto styled-scrollbar">
           <div className="glass-panel p-5">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-mono font-bold text-[var(--cyan-primary)] tracking-wider">REGION DOSSIER</h2>
-              <button onClick={() => { setRegionDossier(null); setDossierLoading(false); }} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] text-xs">✕</button>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-[18px] font-medium text-[var(--accent-primary)]">REGION DOSSIER</h2>
+              <button onClick={() => { setRegionDossier(null); setDossierLoading(false); }} className="text-[14px] font-normal text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">✕</button>
             </div>
             {dossierLoading ? (
               <div className="text-center py-8">
                 <div className="w-5 h-5 border-2 border-[var(--cyan-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                <span className="text-[8px] font-mono text-[var(--text-muted)] tracking-widest">LOADING...</span>
+                <span className="text-[12px] font-mono text-[var(--text-muted)] tracking-widest">LOADING...</span>
               </div>
             ) : regionDossier && (
               <div className="space-y-3">
-                <div><div className="hud-label mb-0.5">LOCATION</div><div className="text-xs text-[var(--text-primary)]">{regionDossier.location?.display_name}</div></div>
+                <div><div className="hud-label mb-0.5">LOCATION</div><div className="text-[14px] font-normal text-[var(--text-primary)]">{regionDossier.location?.display_name}</div></div>
                 {regionDossier.country && (
                   <div className="grid grid-cols-2 gap-2">
-                    <div><div className="hud-label mb-0.5">COUNTRY</div><div className="text-xs text-[var(--text-primary)]">{regionDossier.country.flag} {regionDossier.country.name}</div></div>
-                    <div><div className="hud-label mb-0.5">CAPITAL</div><div className="text-xs text-[var(--text-primary)]">{regionDossier.country.capital}</div></div>
-                    <div><div className="hud-label mb-0.5">POPULATION</div><div className="text-xs text-[var(--text-primary)]">{regionDossier.country.population?.toLocaleString()}</div></div>
-                    <div><div className="hud-label mb-0.5">REGION</div><div className="text-xs text-[var(--text-primary)]">{regionDossier.country.subregion || regionDossier.country.region}</div></div>
-                    <div><div className="hud-label mb-0.5">LANGUAGES</div><div className="text-xs text-[var(--text-primary)]">{regionDossier.country.languages?.join(', ')}</div></div>
-                    <div><div className="hud-label mb-0.5">AREA</div><div className="text-xs text-[var(--text-primary)]">{regionDossier.country.area?.toLocaleString()} km²</div></div>
+                    <div><div className="hud-label mb-0.5">COUNTRY</div><div className="text-[14px] font-normal text-[var(--text-primary)]">{regionDossier.country.flag} {regionDossier.country.name}</div></div>
+                    <div><div className="hud-label mb-0.5">CAPITAL</div><div className="text-[14px] font-normal text-[var(--text-primary)]">{regionDossier.country.capital}</div></div>
+                    <div><div className="hud-label mb-0.5">POPULATION</div><div className="text-[14px] font-normal text-[var(--text-primary)]">{regionDossier.country.population?.toLocaleString()}</div></div>
+                    <div><div className="hud-label mb-0.5">REGION</div><div className="text-[14px] font-normal text-[var(--text-primary)]">{regionDossier.country.subregion || regionDossier.country.region}</div></div>
+                    <div><div className="hud-label mb-0.5">LANGUAGES</div><div className="text-[14px] font-normal text-[var(--text-primary)]">{regionDossier.country.languages?.join(', ')}</div></div>
+                    <div><div className="hud-label mb-0.5">AREA</div><div className="text-[14px] font-normal text-[var(--text-primary)]">{regionDossier.country.area?.toLocaleString()} km²</div></div>
                   </div>
                 )}
-                {regionDossier.head_of_state && (<div><div className="hud-label mb-0.5">HEAD OF STATE</div><div className="text-xs text-[var(--cyan-primary)]">{regionDossier.head_of_state.name}</div><div className="text-[8px] text-[var(--text-muted)]">{regionDossier.head_of_state.position}</div></div>)}
-                {regionDossier.wikipedia && (<div><div className="hud-label mb-1">BRIEF</div><div className="flex gap-3">{regionDossier.wikipedia.thumbnail && <img src={regionDossier.wikipedia.thumbnail} alt="" className="w-14 h-14 rounded object-cover flex-shrink-0" />}<p className="text-[8px] text-[var(--text-secondary)] leading-relaxed">{regionDossier.wikipedia.extract}</p></div></div>)}
+                {regionDossier.head_of_state && (<div><div className="hud-label mb-0.5">HEAD OF STATE</div><div className="text-[12px] text-[var(--cyan-primary)]">{regionDossier.head_of_state.name}</div><div className="text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">{regionDossier.head_of_state.position}</div></div>)}
+                {regionDossier.wikipedia && (<div><div className="hud-label mb-1">BRIEF</div><div className="flex gap-3">{regionDossier.wikipedia.thumbnail && <img src={regionDossier.wikipedia.thumbnail} alt="" className="w-14 h-14 rounded object-cover flex-shrink-0" />}<p className="text-[14px] font-normal text-[var(--text-secondary)] leading-relaxed">{regionDossier.wikipedia.extract}</p></div></div>)}
               </div>
             )}
           </div>
@@ -784,7 +715,7 @@ export default function Dashboard() {
       <KeyboardShortcuts />
       <GlobalStatusBar />
 
-      <div className="desktop-only absolute bottom-[26px] right-5 z-[200] pointer-events-none text-[6px] font-mono text-[var(--text-muted)]/40 tracking-widest">
+      <div className="desktop-only absolute bottom-12 right-5 z-[200] pointer-events-none text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">
         [?] SHORTCUTS · [F] FULLSCREEN · [S] SHARE · [R] RESET VIEW
       </div>
 
