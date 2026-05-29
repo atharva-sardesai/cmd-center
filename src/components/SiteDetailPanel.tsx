@@ -149,6 +149,7 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
   const liveCritical = liveAlerts.filter(a => a.severity === 'CRITICAL').length;
   const liveHigh = liveAlerts.filter(a => a.severity === 'HIGH').length;
   const alertChipColor = liveCritical > 0 ? STATUS_COLOR.CRITICAL : STATUS_COLOR.WATCH;
+  const alertSummary = liveCritical > 0 ? `${liveCritical} critical` : `${liveHigh} high`;
 
   return (
     <AnimatePresence>
@@ -189,7 +190,7 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
               >
                 <span>Live alerts</span>
                 <span className="font-mono tabular-nums">{liveAlerts.length}</span>
-                <span className="text-[var(--text-tertiary)]">{liveCritical > 0 ? `${liveCritical} critical` : `${liveHigh} high`}</span>
+                <span className="text-[var(--text-tertiary)]">{alertSummary}</span>
               </div>
             )}
           </div>

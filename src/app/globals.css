@@ -15,6 +15,8 @@
   --bg-base: #05070A;
   --bg-surface: rgba(5, 7, 10, 0.45);
   --bg-elevated: #10141D;
+  --glass-panel-background: rgba(5, 7, 10, 0.45);
+  --glass-panel-left-background: rgba(5, 7, 10, 0.82);
   --border-hairline: rgba(255, 255, 255, 0.08);
 
   --accent-primary: #22D3EE;
@@ -223,7 +225,7 @@ html, body {
    GLASS PANELS — Premium depth with micro-reflections
    ═══════════════════════════════════════════════════════════════ */
 .glass-panel {
-  background: rgba(5, 7, 10, 0.45);
+  background: var(--glass-panel-background);
   backdrop-filter: blur(22px) saturate(170%);
   -webkit-backdrop-filter: blur(22px) saturate(170%);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -238,7 +240,7 @@ html, body {
 }
 
 .glass-panel-left {
-  background: rgba(5, 7, 10, 0.82);
+  background: var(--glass-panel-left-background);
 }
 
 .glass-panel:hover {
@@ -246,7 +248,7 @@ html, body {
 }
 
 .glass-panel-sm {
-  background: rgba(5, 7, 10, 0.45);
+  background: var(--glass-panel-background);
   backdrop-filter: blur(22px) saturate(170%);
   -webkit-backdrop-filter: blur(22px) saturate(170%);
   border: 1px solid rgba(255, 255, 255, 0.08);

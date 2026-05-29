@@ -49,6 +49,7 @@ const ACCENT_PRIMARY = '#22D3EE';
 const TEXT_SECONDARY = 'rgba(255,255,255,0.65)';
 const TEXT_TERTIARY = 'rgba(255,255,255,0.4)';
 const CARTO_NO_LABELS_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json';
+const CONTROLLED_LABEL_MAX_ZOOM = 7;
 
 const STATUS_RANK: Record<StatusLevel, number> = { HEALTHY: 0, WATCH: 1, CRITICAL: 2 };
 
@@ -124,14 +125,13 @@ function CommandMap({
       createDot(map, 'dot-critical', STATUS_COLORS.CRITICAL, 10);
       createDot(map, 'dot-neutral', '#64748B', 8);
 
-
       if (map.getSource('carto')) {
         map.addLayer({
           id: 'controlled-region-labels',
           type: 'symbol',
           source: 'carto',
           'source-layer': 'place',
-          maxzoom: 7,
+          maxzoom: CONTROLLED_LABEL_MAX_ZOOM,
           filter: ['match', ['get', 'class'], ['country', 'state'], true, false],
           layout: {
             'text-field': ['coalesce', ['get', 'name_en'], ['get', 'name']],
