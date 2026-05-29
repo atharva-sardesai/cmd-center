@@ -48,6 +48,8 @@ const STATUS_COLORS: Record<StatusLevel, string> = {
 const ACCENT_PRIMARY = '#22D3EE';
 const TEXT_SECONDARY = 'rgba(255,255,255,0.65)';
 const TEXT_TERTIARY = 'rgba(255,255,255,0.4)';
+const DEFAULT_DARK_MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json';
+const CONTROLLED_LABEL_MAX_ZOOM = 7;
 
 const STATUS_RANK: Record<StatusLevel, number> = { HEALTHY: 0, WATCH: 1, CRITICAL: 2 };
 
@@ -106,7 +108,7 @@ function CommandMap({
     if (!containerRef.current || mapRef.current) return;
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: CARTO_NO_LABELS_STYLE,
+      style: DEFAULT_DARK_MAP_STYLE,
       center: [10, 20], zoom: 2.0, minZoom: 1.5, maxZoom: 18,
       attributionControl: false,
       maxPitch: 85,
@@ -122,6 +124,32 @@ function CommandMap({
       createDot(map, 'dot-watch', STATUS_COLORS.WATCH, 10);
       createDot(map, 'dot-critical', STATUS_COLORS.CRITICAL, 10);
       createDot(map, 'dot-neutral', '#64748B', 8);
+
+      if (map.getSource('carto')) {
+        map.addLayer({
+          id: 'controlled-region-labels',
+          type: 'symbol',
+          source: 'carto',
+          'source-layer': 'place',
+          maxzoom: CONTROLLED_LABEL_MAX_ZOOM,
+          filter: ['match', ['get', 'class'], ['country', 'state'], true, false],
+          layout: {
+            'text-field': ['coalesce', ['get', 'name_en'], ['get', 'name']],
+            'text-size': 11,
+            'text-font': ['Open Sans Regular'],
+            'text-transform': 'uppercase',
+            'text-letter-spacing': 0.08,
+            'text-allow-overlap': false,
+            'symbol-sort-key': ['case', ['==', ['get', 'class'], 'country'], 0, 1],
+          },
+          paint: {
+            'text-color': TEXT_TERTIARY,
+            'text-halo-color': '#05070A',
+            'text-halo-width': 1,
+            'text-opacity': 0.62,
+          },
+        });
+      }
 
       // Register all domain sources
       const SOURCES = [
@@ -326,7 +354,7 @@ function CommandMap({
           'circle-stroke-color': ACCENT_PRIMARY,
           'circle-stroke-opacity': 0.95,
         } });
-      map.addLayer({ id: 'sites-label', type: 'symbol', source: 'sites', minzoom: 3.4,
+      map.addLayer({ id: 'sites-label', type: 'symbol', source: 'sites', minzoom: 8,
         layout: {
           'text-field': ['get','name'],
           'text-size': 9, 'text-font': ['Open Sans Regular'],
@@ -587,7 +615,7 @@ function CommandMap({
     prevStyleRef.current = mapStyle;
     const newStyle = mapStyle.startsWith('http')
       ? { version: 8 as const, sources: { imagery: { type: 'raster' as const, tiles: [mapStyle], tileSize: 256 } }, layers: [{ id: 'bg', type: 'raster' as const, source: 'imagery' }] }
-      : CARTO_NO_LABELS_STYLE;
+      : DEFAULT_DARK_MAP_STYLE;
     map.setStyle(newStyle as any);
   }, [mapReady, mapStyle]);
 
@@ -773,7 +801,7 @@ function CommandMap({
   }, [mapReady, activeLayers, setVis]);
 
   return (
-    <div ref={containerRef} className="absolute inset-0 w-full h-full" style={{ background: '#05070A' }} />
+    <div ref={containerRef} className="absolute inset-0 z-[1] w-full h-full" style={{ background: '#05070A' }} />
   );
 }
 
