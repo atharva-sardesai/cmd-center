@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { GlassPanel } from '@/components/ui/glass-panel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ReactNode } from 'react';
 import type { DomainData, SiteRecord, StatusLevel } from '@/data/sites';
@@ -145,11 +144,6 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
     : watchCount > 0
       ? `${watchCount} watch ${watchCount === 1 ? 'item needs' : 'items need'} monitoring`
       : 'Site posture is healthy';
-  const liveAlerts = site.recentActivity.filter(a => a.severity === 'CRITICAL' || a.severity === 'HIGH');
-  const liveCritical = liveAlerts.filter(a => a.severity === 'CRITICAL').length;
-  const liveHigh = liveAlerts.filter(a => a.severity === 'HIGH').length;
-  const alertChipColor = liveCritical > 0 ? STATUS_COLOR.CRITICAL : STATUS_COLOR.WATCH;
-  const alertSummary = liveCritical > 0 ? `${liveCritical} critical` : `${liveHigh} high`;
 
   return (
     <AnimatePresence>
@@ -159,44 +153,30 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 40 }}
         transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-        className="pointer-events-auto"
+        className="glass-panel flex flex-col overflow-hidden pointer-events-auto"
         style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: '100%' }}
       >
-        <GlassPanel className="flex h-full flex-col overflow-hidden">
         <div className="flex-shrink-0 border-b border-[var(--border-hairline)] px-6 py-6">
-          <div className="space-y-3">
-            <div className="flex items-start justify-between gap-4">
-              <h2 className="min-w-0 truncate text-[32px] font-medium leading-none text-[var(--text-primary)]">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h2 className="truncate text-[32px] font-medium leading-none text-[var(--text-primary)]">
                 {site.name}
               </h2>
-              <button
-                onClick={onClose}
-                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-[var(--text-tertiary)] transition-colors hover:bg-[var(--hover-accent)] hover:text-[var(--text-primary)]"
-                aria-label="Close site detail panel"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 text-[13px] font-normal text-[var(--text-secondary)]">
-              <span>{site.businessUnit} · {site.region}</span>
-              <span className="rounded-md border border-[var(--border-hairline)] bg-white/[0.02] px-2 py-1 font-mono text-[12px] text-[var(--text-tertiary)] tabular-nums">
-                {site.lat.toFixed(4)}°, {site.lng.toFixed(4)}°
-              </span>
-            </div>
-            {liveAlerts.length > 0 && (
-              <div
-                className="inline-flex w-fit items-center gap-2 rounded-full border px-2.5 py-1 text-[12px] font-medium uppercase tracking-[0.05em]"
-                style={{ borderColor: `${alertChipColor}66`, color: alertChipColor, background: `${alertChipColor}12` }}
-              >
-                <span>Live alerts</span>
-                <span className="font-mono tabular-nums">{liveAlerts.length}</span>
-                <span className="text-[var(--text-tertiary)]">{alertSummary}</span>
+              <div className="mt-3 text-[14px] font-normal text-[var(--text-secondary)]">
+                {site.businessUnit} · {site.region} · {site.lat.toFixed(4)}°, {site.lng.toFixed(4)}°
               </div>
-            )}
+            </div>
+            <button
+              onClick={onClose}
+              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-[var(--text-tertiary)] transition-colors hover:bg-[var(--hover-accent)] hover:text-[var(--text-primary)]"
+              aria-label="Close site detail panel"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
         </div>
 
-        <div className="flex-1 space-y-6 overflow-y-auto px-6 py-4 styled-scrollbar">
+        <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6 styled-scrollbar">
           <section className="min-h-[25%] space-y-3 rounded-xl border border-[var(--border-hairline)] bg-white/[0.02] p-6">
             <div className="flex items-end justify-between gap-4">
               <div className="flex items-end gap-4">
@@ -295,7 +275,6 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
             </div>
           </Section>
         </div>
-        </GlassPanel>
       </motion.div>
     </AnimatePresence>
   );
