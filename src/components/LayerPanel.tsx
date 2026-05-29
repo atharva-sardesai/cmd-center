@@ -4,9 +4,19 @@ import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, ChevronDown, ChevronUp, ToggleLeft, ToggleRight } from 'lucide-react';
 import { LAYER_GROUPS, ALL_LAYERS } from '@/data/layerMap';
+import type { StatusLevel } from '@/data/sites';
+
+type DomainSummary = { key: string; status?: StatusLevel };
+
+const STATUS_COLORS: Record<StatusLevel | 'NEUTRAL', string> = {
+  HEALTHY: 'var(--status-healthy)',
+  WATCH: 'var(--status-watch)',
+  CRITICAL: 'var(--status-critical)',
+  NEUTRAL: 'var(--status-neutral)',
+};
 
 interface LayerPanelProps {
-  data: any;
+  data: { domains?: DomainSummary[] } & Record<string, unknown>;
   activeLayers: Record<string, boolean>;
   setActiveLayers: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
@@ -26,6 +36,11 @@ function LayerPanel({ data, activeLayers, setActiveLayers }: LayerPanelProps) {
       if (data[k] && Array.isArray(data[k])) { total += data[k].length; found = true; }
     }
     return found ? total : null;
+  };
+
+  const getLayerStatusColor = (key: string) => {
+    const status = data.domains?.find(d => d.key === key)?.status;
+    return STATUS_COLORS[status ?? 'NEUTRAL'];
   };
 
   const totalEntities = ALL_LAYERS.reduce(
@@ -89,13 +104,13 @@ function LayerPanel({ data, activeLayers, setActiveLayers }: LayerPanelProps) {
                   onClick={() => toggleGroup(group.label)}
                   className="flex-1 flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-white/[0.03] transition-colors"
                 >
-                  <GroupIcon className="w-3 h-3 flex-shrink-0" style={{ color: group.color }} />
+                  <GroupIcon className="w-3 h-3 flex-shrink-0" style={{ color: groupActiveCount > 0 ? 'var(--accent-primary)' : 'var(--text-tertiary)' }} />
                   <span className="text-[9px] font-mono tracking-[0.15em] text-[var(--text-secondary)] font-bold flex-1 text-left">
                     {group.label}
                   </span>
                   <span
                     className="text-[8px] font-mono tabular-nums"
-                    style={{ color: groupActiveCount > 0 ? group.color : 'var(--text-muted)' }}
+                    style={{ color: groupActiveCount > 0 ? 'var(--accent-primary)' : 'var(--text-tertiary)' }}
                   >
                     {groupActiveCount}/{group.layers.length}
                   </span>
@@ -109,7 +124,7 @@ function LayerPanel({ data, activeLayers, setActiveLayers }: LayerPanelProps) {
                   title={allActive ? 'Disable all' : 'Enable all'}
                 >
                   {allActive
-                    ? <ToggleRight className="w-3.5 h-3.5" style={{ color: group.color }} />
+                    ? <ToggleRight className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
                     : <ToggleLeft className="w-3.5 h-3.5 text-[var(--text-muted)]" />}
                 </button>
               </div>
@@ -128,6 +143,7 @@ function LayerPanel({ data, activeLayers, setActiveLayers }: LayerPanelProps) {
                         const Icon = layer.Icon;
                         const isActive = activeLayers[layer.key];
                         const count = getCount(layer.dataKeys);
+                        const statusColor = getLayerStatusColor(layer.key);
                         return (
                           <button
                             key={layer.key}
@@ -142,13 +158,13 @@ function LayerPanel({ data, activeLayers, setActiveLayers }: LayerPanelProps) {
                             <div
                               className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all duration-300 ${isActive ? 'scale-100' : 'scale-50 opacity-30'}`}
                               style={{
-                                backgroundColor: layer.color,
-                                boxShadow: isActive ? `0 0 6px ${layer.color}60` : 'none',
+                                backgroundColor: statusColor,
+                                boxShadow: isActive ? `0 0 6px ${statusColor}` : 'none',
                               }}
                             />
                             <Icon
                               className="w-3.5 h-3.5 flex-shrink-0 transition-colors duration-200"
-                              style={{ color: isActive ? layer.color : 'var(--text-muted)' }}
+                              style={{ color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
                             />
                             <span
                               className={`text-[11px] font-mono tracking-wide flex-1 text-left transition-colors duration-200 ${
@@ -162,7 +178,7 @@ function LayerPanel({ data, activeLayers, setActiveLayers }: LayerPanelProps) {
                             {count !== null && (
                               <span
                                 className="text-[9px] font-mono tabular-nums font-bold transition-colors duration-200"
-                                style={{ color: isActive ? layer.color : 'var(--text-muted)' }}
+                                style={{ color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
                               >
                                 {count.toLocaleString()}
                               </span>

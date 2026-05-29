@@ -8,7 +8,7 @@ const SITE_TITLE = "Sentinel Command Center — Security Program Situational Awa
 const SITE_DESCRIPTION = "A single-pane security command center demo. Displays security program activities — vulnerability findings, asset inventory, awareness reach, simulated campaigns, access reviews, and governance metrics — as a live fictional dashboard on a 3D globe.";
 
 export const viewport: Viewport = {
-  themeColor: "#00E5FF",
+  themeColor: "#22D3EE",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,

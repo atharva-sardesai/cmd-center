@@ -100,7 +100,9 @@ export default function Dashboard() {
   const geocodeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastGeocodedPos = useRef<{ lat: number; lng: number } | null>(null);
 
-  const [activeLayers, setActiveLayers] = useState(DEFAULT_ACTIVE_LAYERS);
+  const [activeLayers, setActiveLayers] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(Object.keys(DEFAULT_ACTIVE_LAYERS).map(key => [key, false]))
+  );
   const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null);
   const selectedSite = selectedSiteId ? MASTER_SITES.find(s => s.id === selectedSiteId) ?? null : null;
 
@@ -256,7 +258,7 @@ export default function Dashboard() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8, ease: 'easeInOut' }}
             className="absolute inset-0 z-[999] flex flex-col items-center justify-center overflow-hidden"
-            style={{ background: 'radial-gradient(ellipse at center, #0a0a14 0%, var(--bg-void) 70%)' }}
+            style={{ background: 'radial-gradient(ellipse at center, #0B0E14 0%, var(--bg-void) 70%)' }}
           >
             <div className="absolute inset-0 pointer-events-none z-[1]" style={{
               backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,229,255,0.012) 2px, rgba(0,229,255,0.012) 4px)',
@@ -524,7 +526,7 @@ export default function Dashboard() {
             <span className="hidden lg:inline-flex items-center gap-1.5">
               <Shield className="w-3 h-3 text-[var(--cyan-primary)]" />
               <span className="text-[var(--text-muted)]">POSTURE</span>
-              <span className="font-bold tabular-nums" style={{ color: data.posture_score >= 80 ? '#00E676' : data.posture_score >= 65 ? '#FFD700' : '#FF3D3D' }}>
+              <span className="font-bold tabular-nums" style={{ color: data.posture_score >= 80 ? 'var(--status-healthy)' : data.posture_score >= 65 ? 'var(--status-watch)' : 'var(--status-critical)' }}>
                 {data.posture_score}/100
               </span>
             </span>
@@ -564,7 +566,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-5 gap-2 text-center">
                 <div>
                   <div className="hud-label">FINDINGS</div>
-                  <div className="hud-value text-[10px] animate-data-pulse" style={{ color: '#00E5FF' }}>
+                  <div className="hud-value text-[10px] animate-data-pulse" style={{ color: 'var(--accent-primary)' }}>
                     {selectedSite ? selectedSite.domains.exposure.findings : (data.exposure_sites?.length||0).toLocaleString()}
                   </div>
                 </div>
@@ -576,7 +578,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <div className="hud-label">ASSETS</div>
-                  <div className="hud-value text-[10px]" style={{ color: '#00E676' }}>
+                  <div className="hud-value text-[10px]" style={{ color: 'var(--status-healthy)' }}>
                     {selectedSite
                       ? (selectedSite.domains.it_assets.servers + selectedSite.domains.it_assets.endpoints + selectedSite.domains.it_assets.network + selectedSite.domains.it_assets.cloud + selectedSite.domains.ot_assets.plcs + selectedSite.domains.ot_assets.hmis + selectedSite.domains.ot_assets.scada).toLocaleString()
                       : ((data.it_assets?.length||0)+(data.ot_assets?.length||0)).toLocaleString()}
@@ -584,13 +586,13 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <div className="hud-label">CAMPAIGNS</div>
-                  <div className="hud-value text-[10px]" style={{ color: '#E040FB' }}>
+                  <div className="hud-value text-[10px]" style={{ color: 'var(--accent-primary)' }}>
                     {selectedSite ? selectedSite.domains.sim_campaigns.sent : (data.campaign_events?.length||0).toLocaleString()}
                   </div>
                 </div>
                 <div>
                   <div className="hud-label">ACCESS</div>
-                  <div className="hud-value text-[10px]" style={{ color: '#FFD700' }}>
+                  <div className="hud-value text-[10px]" style={{ color: 'var(--status-watch)' }}>
                     {selectedSite ? selectedSite.domains.access_recert.overdue : (data.access_events?.length||0).toLocaleString()}
                   </div>
                 </div>
@@ -655,11 +657,11 @@ export default function Dashboard() {
                     <>
                       <div className="glass-panel-sm p-2 mb-2">
                         <div className="grid grid-cols-5 gap-1 text-center">
-                          <div><div className="hud-label" style={{fontSize:'6px'}}>FINDINGS</div><div className="hud-value text-[9px]" style={{color:'#00E5FF'}}>{selectedSite ? selectedSite.domains.exposure.findings : data.exposure_sites?.length||0}</div></div>
+                          <div><div className="hud-label" style={{fontSize:'6px'}}>FINDINGS</div><div className="hud-value text-[9px]" style={{color:'var(--accent-primary)'}}>{selectedSite ? selectedSite.domains.exposure.findings : data.exposure_sites?.length||0}</div></div>
                           <div><div className="hud-label" style={{fontSize:'6px'}}>APPS</div><div className="hud-value text-[9px]">{selectedSite ? selectedSite.domains.app_assurance.findings : data.assurance_events?.length||0}</div></div>
-                          <div><div className="hud-label" style={{fontSize:'6px'}}>ASSETS</div><div className="hud-value text-[9px]" style={{color:'#00E676'}}>{selectedSite ? (selectedSite.domains.it_assets.servers+selectedSite.domains.it_assets.endpoints+selectedSite.domains.it_assets.network+selectedSite.domains.it_assets.cloud+selectedSite.domains.ot_assets.plcs+selectedSite.domains.ot_assets.hmis+selectedSite.domains.ot_assets.scada) : (data.it_assets?.length||0)+(data.ot_assets?.length||0)}</div></div>
-                          <div><div className="hud-label" style={{fontSize:'6px'}}>CAMP</div><div className="hud-value text-[9px]" style={{color:'#E040FB'}}>{selectedSite ? selectedSite.domains.sim_campaigns.sent : data.campaign_events?.length||0}</div></div>
-                          <div><div className="hud-label" style={{fontSize:'6px'}}>ACCESS</div><div className="hud-value text-[9px]" style={{color:'#FFD700'}}>{selectedSite ? selectedSite.domains.access_recert.overdue : data.access_events?.length||0}</div></div>
+                          <div><div className="hud-label" style={{fontSize:'6px'}}>ASSETS</div><div className="hud-value text-[9px]" style={{color:'var(--status-healthy)'}}>{selectedSite ? (selectedSite.domains.it_assets.servers+selectedSite.domains.it_assets.endpoints+selectedSite.domains.it_assets.network+selectedSite.domains.it_assets.cloud+selectedSite.domains.ot_assets.plcs+selectedSite.domains.ot_assets.hmis+selectedSite.domains.ot_assets.scada) : (data.it_assets?.length||0)+(data.ot_assets?.length||0)}</div></div>
+                          <div><div className="hud-label" style={{fontSize:'6px'}}>CAMP</div><div className="hud-value text-[9px]" style={{color:'var(--accent-primary)'}}>{selectedSite ? selectedSite.domains.sim_campaigns.sent : data.campaign_events?.length||0}</div></div>
+                          <div><div className="hud-label" style={{fontSize:'6px'}}>ACCESS</div><div className="hud-value text-[9px]" style={{color:'var(--status-watch)'}}>{selectedSite ? selectedSite.domains.access_recert.overdue : data.access_events?.length||0}</div></div>
                         </div>
                       </div>
                       <LayerPanel data={data} activeLayers={activeLayers} setActiveLayers={setActiveLayers} />
