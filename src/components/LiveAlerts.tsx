@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, MapPin, AlertTriangle, Clock } from 'lucide-react';
+import { GlassPanel } from '@/components/ui/glass-panel';
 
 interface LiveAlertsProps {
   data: any;
@@ -11,11 +12,11 @@ interface LiveAlertsProps {
 }
 
 const SEVERITY_COLORS: Record<string, string> = {
-  CRITICAL: '#FF1744',
-  HIGH: '#FF3D3D',
-  ELEVATED: '#FF9500',
-  MODERATE: '#FFD700',
-  LOW: '#00E676',
+  CRITICAL: '#EF4444',
+  HIGH: '#EF4444',
+  ELEVATED: '#F59E0B',
+  MODERATE: '#F59E0B',
+  LOW: '#10B981',
 };
 
 function riskToSeverity(score: number): string {
@@ -47,14 +48,15 @@ export default function LiveAlerts({ data, onLocate }: LiveAlertsProps) {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.5, duration: 0.6 }}
-      className="glass-panel flex flex-col overflow-hidden pointer-events-auto"
+      className="pointer-events-auto"
     >
+      <GlassPanel className="flex flex-col overflow-hidden">
       <button
         onClick={() => setExpanded(!expanded)}
         className="flex items-center justify-between px-3 py-2 hover:bg-[var(--hover-accent)] transition-colors"
       >
         <div className="flex items-center gap-2">
-          <AlertTriangle className="w-3.5 h-3.5 text-[var(--alert-orange)]" />
+          <AlertTriangle className="w-3.5 h-3.5 text-[var(--alert-watch)]" />
           <span className="hud-text text-[10px] text-[var(--text-primary)]">LIVE ALERTS</span>
           <span className="gotham-tag gotham-tag--info" style={{ fontSize: '7px', padding: '1px 5px' }}>{alerts.length}</span>
           {criticalCount > 0 && (
@@ -62,7 +64,7 @@ export default function LiveAlerts({ data, onLocate }: LiveAlertsProps) {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-[var(--alert-orange)] animate-sentinel-pulse" />
+          <div className="w-1.5 h-1.5 rounded-full bg-[var(--alert-watch)] animate-sentinel-pulse" />
           {expanded ? <ChevronUp className="w-3.5 h-3.5 text-[var(--text-muted)]" /> : <ChevronDown className="w-3.5 h-3.5 text-[var(--text-muted)]" />}
         </div>
       </button>
@@ -82,7 +84,7 @@ export default function LiveAlerts({ data, onLocate }: LiveAlertsProps) {
                   AWAITING ALERTS...
                 </div>
               ) : alerts.map((alert, i) => {
-                const sevColor = SEVERITY_COLORS[alert.severity] || '#FFD700';
+                const sevColor = SEVERITY_COLORS[alert.severity] || '#F59E0B';
                 return (
                   <button
                     key={i}
@@ -114,6 +116,7 @@ export default function LiveAlerts({ data, onLocate }: LiveAlertsProps) {
           </motion.div>
         )}
       </AnimatePresence>
+      </GlassPanel>
     </motion.div>
   );
 }

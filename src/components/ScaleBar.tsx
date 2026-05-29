@@ -36,12 +36,12 @@ export default function ScaleBar({ zoom, latitude }: ScaleBarProps) {
           {scaleInfo.label}
         </span>
         <div
-          className="h-[2px] bg-[var(--gold-primary)] rounded-full"
+          className="h-[2px] bg-[var(--accent-primary)] rounded-full"
           style={{ width: scaleInfo.barWidth }}
         />
         <div className="flex justify-between w-full">
-          <div className="w-[1px] h-1 bg-[var(--gold-primary)]" />
-          <div className="w-[1px] h-1 bg-[var(--gold-primary)]" />
+          <div className="w-[1px] h-1 bg-[var(--accent-primary)]" />
+          <div className="w-[1px] h-1 bg-[var(--accent-primary)]" />
         </div>
       </div>
     </div>
