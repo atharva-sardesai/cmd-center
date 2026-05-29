@@ -38,7 +38,7 @@ export default function GlobalStatusBar() {
   if (!domains.length && postureScore === null) return null;
 
   const statusColor = (s: string) =>
-    s === 'CRITICAL' ? '#FF3D3D' : s === 'WATCH' ? '#FFD700' : '#00E676';
+    s === 'CRITICAL' ? '#EF4444' : s === 'WATCH' ? '#F59E0B' : '#10B981';
 
   const openFindings = assurance?.stats?.active_cves ?? 0;
 
@@ -50,7 +50,7 @@ export default function GlobalStatusBar() {
         <span className="text-[var(--text-muted)]">POSTURE INDEX</span>
         <span
           className="font-bold tabular-nums"
-          style={{ color: (postureScore ?? 0) >= 80 ? '#00E676' : (postureScore ?? 0) >= 65 ? '#FFD700' : '#FF3D3D' }}
+          style={{ color: (postureScore ?? 0) >= 80 ? '#10B981' : (postureScore ?? 0) >= 65 ? '#F59E0B' : '#EF4444' }}
         >
           {postureScore ?? '—'}/100
         </span>
@@ -69,7 +69,7 @@ export default function GlobalStatusBar() {
           <span className="font-bold tabular-nums" style={{ color: statusColor(d.status) }}>
             {d.score}
           </span>
-          <span className="text-[8px]" style={{ color: d.trend >= 0 ? '#00E676' : '#FF3D3D' }}>
+          <span className="text-[8px]" style={{ color: d.trend >= 0 ? '#10B981' : '#EF4444' }}>
             {d.trend >= 0 ? `↑${d.trend}` : `↓${Math.abs(d.trend)}`}
           </span>
         </span>
@@ -105,7 +105,7 @@ export default function GlobalStatusBar() {
           <Shield className="w-2.5 h-2.5 text-[var(--cyan-primary)]" />
           <span
             className="font-bold tabular-nums"
-            style={{ color: (postureScore ?? 0) >= 80 ? '#00E676' : (postureScore ?? 0) >= 65 ? '#FFD700' : '#FF3D3D' }}
+            style={{ color: (postureScore ?? 0) >= 80 ? '#10B981' : (postureScore ?? 0) >= 65 ? '#F59E0B' : '#EF4444' }}
           >
             {postureScore ?? '—'}
           </span>

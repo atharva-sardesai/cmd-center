@@ -10,10 +10,10 @@ interface IntelFeedProps {
 }
 
 function severityColor(score: number): string {
-  if (score >= 8) return '#FF3D3D';
-  if (score >= 6) return '#FF9500';
-  if (score >= 4) return '#FFD700';
-  return '#00E676';
+  if (score >= 8) return '#EF4444';
+  if (score >= 6) return '#F59E0B';
+  if (score >= 4) return '#F59E0B';
+  return '#10B981';
 }
 
 function severityLabel(score: number): string {
