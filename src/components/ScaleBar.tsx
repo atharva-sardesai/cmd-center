@@ -32,7 +32,7 @@ export default function ScaleBar({ zoom, latitude }: ScaleBarProps) {
   return (
     <div className="flex items-end gap-2 pointer-events-none">
       <div className="flex flex-col items-start">
-        <span className="text-[7px] font-mono text-[var(--text-muted)] tracking-wider mb-0.5">
+        <span className="text-[12px] font-mono text-[var(--text-muted)] tracking-wider mb-0.5">
           {scaleInfo.label}
         </span>
         <div

@@ -55,11 +55,11 @@ export default function IntelFeed({ data, onLocate }: IntelFeedProps) {
         <div className="flex items-center gap-2">
           <Activity className="w-3.5 h-3.5 text-[var(--cyan-primary)]" />
           <span className="hud-text text-[12px] text-[var(--text-primary)]">ACTIVITY FEED</span>
-          <span className="gotham-tag gotham-tag--info" style={{ fontSize: '8px', padding: '1px 5px' }}>
+          <span className="gotham-tag gotham-tag--info" style={{ fontSize: '12px', padding: '1px 5px' }}>
             {items.length}
           </span>
           {items.some((n: any) => n.risk_score >= 8) && (
-            <span className="gotham-tag gotham-tag--critical" style={{ fontSize: '7px', padding: '1px 4px' }}>
+            <span className="gotham-tag gotham-tag--critical" style={{ fontSize: '12px', padding: '1px 4px' }}>
               ALERTS
             </span>
           )}
@@ -83,7 +83,7 @@ export default function IntelFeed({ data, onLocate }: IntelFeedProps) {
             <div className="max-h-[400px] overflow-y-auto styled-scrollbar divide-y divide-[var(--border-secondary)]">
               {items.length === 0 ? (
                 <div className="px-4 py-6 text-center">
-                  <span className="text-[11px] font-mono text-[var(--text-muted)] tracking-widest">
+                  <span className="text-[12px] font-mono text-[var(--text-muted)] tracking-widest">
                     AWAITING ACTIVITY...
                   </span>
                 </div>
@@ -97,12 +97,12 @@ export default function IntelFeed({ data, onLocate }: IntelFeedProps) {
                     >
                       <div className="flex items-center gap-2 mb-1">
                         <span
-                          className="text-[9px] font-mono font-bold tracking-widest"
+                          className="text-[12px] font-mono font-bold tracking-widest"
                           style={{ color }}
                         >
                           {severityLabel(item.risk_score)}
                         </span>
-                        <span className="text-[8px] font-mono text-[var(--text-muted)] bg-[var(--bg-tertiary)] px-1.5 py-0.5 rounded">
+                        <span className="text-[12px] font-mono text-[var(--text-muted)] bg-[var(--bg-tertiary)] px-1.5 py-0.5 rounded">
                           {item.source}
                         </span>
                         {item.coords && (
@@ -113,11 +113,11 @@ export default function IntelFeed({ data, onLocate }: IntelFeedProps) {
                             <MapPin className="w-2.5 h-2.5" />
                           </button>
                         )}
-                        <span className="text-[8px] font-mono text-[var(--text-muted)] ml-auto">
+                        <span className="text-[12px] font-mono text-[var(--text-muted)] ml-auto">
                           {timeAgo(item.published)}
                         </span>
                       </div>
-                      <p className="text-[11px] text-[var(--text-primary)] leading-tight line-clamp-2">
+                      <p className="text-[12px] text-[var(--text-primary)] leading-tight line-clamp-2">
                         {item.title}
                       </p>
                     </div>

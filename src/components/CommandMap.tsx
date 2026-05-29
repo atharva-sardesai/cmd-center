@@ -406,13 +406,13 @@ function CommandMap({
         const coords = (e.features![0].geometry as any).coordinates;
         const color = p.severity === 'CRITICAL' ? '#EF4444' : p.severity === 'HIGH' ? '#F59E0B' : p.severity === 'MEDIUM' ? '#F59E0B' : '#22D3EE';
         popup(coords, `<div style="${pStyle}border:1px solid ${color}40;">
-          <div style="color:${color};font-size:13px;font-weight:700;margin-bottom:8px;">⚠ EXPOSURE FINDINGS — ${p.name}</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:10px;margin-bottom:8px;">
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">FINDINGS</span><br/><span style="color:${color};font-weight:bold;">${p.findings}</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">CRITICALS</span><br/><span style="color:#EF4444;font-weight:bold;">${p.criticals}</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">SEVERITY</span><br/><span style="color:${color};">${p.severity}</span></div>
+          <div style="color:${color};font-size:14px;font-weight:700;margin-bottom:8px;">⚠ EXPOSURE FINDINGS — ${p.name}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:12px;margin-bottom:8px;">
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">FINDINGS</span><br/><span style="color:${color};font-weight:bold;">${p.findings}</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">CRITICALS</span><br/><span style="color:#EF4444;font-weight:bold;">${p.criticals}</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">SEVERITY</span><br/><span style="color:${color};">${p.severity}</span></div>
           </div>
-          <div style="font-size:9px;color:rgba(255,255,255,0.4);">Region: <span style="color:rgba(255,255,255,0.95);">${p.region}</span></div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.4);">Region: <span style="color:rgba(255,255,255,0.95);">${p.region}</span></div>
         </div>`);
         onEntityClick?.(p);
       });
@@ -425,12 +425,12 @@ function CommandMap({
         const color = p.severity === 'CRITICAL' ? '#EF4444' : p.severity === 'HIGH' ? '#F59E0B' : p.severity === 'MEDIUM' ? '#F59E0B' : '#10B981';
         popup(coords, `<div style="${pStyle}border:1px solid ${color}40;">
           <div style="color:#F59E0B;font-size:12px;font-weight:700;margin-bottom:6px;">🔍 APP ASSURANCE</div>
-          <div style="color:rgba(255,255,255,0.95);font-size:11px;margin-bottom:8px;">${p.name}</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:10px;">
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">APP</span><br/><span style="color:rgba(255,255,255,0.95);">${p.app}</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">FINDINGS</span><br/><span style="color:${color};font-weight:bold;">${p.findings}</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">SEVERITY</span><br/><span style="color:${color};">${p.severity}</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">STATUS</span><br/><span style="color:rgba(255,255,255,0.95);">${p.status}</span></div>
+          <div style="color:rgba(255,255,255,0.95);font-size:12px;margin-bottom:8px;">${p.name}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;">
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">APP</span><br/><span style="color:rgba(255,255,255,0.95);">${p.app}</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">FINDINGS</span><br/><span style="color:${color};font-weight:bold;">${p.findings}</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">SEVERITY</span><br/><span style="color:${color};">${p.severity}</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">STATUS</span><br/><span style="color:rgba(255,255,255,0.95);">${p.status}</span></div>
           </div>
         </div>`);
       });
@@ -444,11 +444,11 @@ function CommandMap({
         const color = sc >= 4.5 ? '#10B981' : sc >= 3.5 ? '#F59E0B' : '#F59E0B';
         popup(coords, `<div style="${pStyle}border:1px solid ${color}40;">
           <div style="color:#F59E0B;font-size:12px;font-weight:700;margin-bottom:6px;">🏛 ARCHITECTURE REVIEW</div>
-          <div style="color:rgba(255,255,255,0.95);font-size:11px;margin-bottom:8px;">${p.name}</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:10px;">
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">TYPE</span><br/><span style="color:rgba(255,255,255,0.95);">${p.type}</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">SCORE</span><br/><span style="color:${color};font-weight:bold;">${sc}/5.0</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">STATUS</span><br/><span style="color:rgba(255,255,255,0.95);">${p.status}</span></div>
+          <div style="color:rgba(255,255,255,0.95);font-size:12px;margin-bottom:8px;">${p.name}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;">
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">TYPE</span><br/><span style="color:rgba(255,255,255,0.95);">${p.type}</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">SCORE</span><br/><span style="color:${color};font-weight:bold;">${sc}/5.0</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">STATUS</span><br/><span style="color:rgba(255,255,255,0.95);">${p.status}</span></div>
           </div>
         </div>`);
       });
@@ -460,11 +460,11 @@ function CommandMap({
         const coords = (e.features![0].geometry as any).coordinates;
         popup(coords, `<div style="${pStyle}border:1px solid #22D3EE40;">
           <div style="color:#22D3EE;font-size:12px;font-weight:700;margin-bottom:6px;">🔒 DLP ENFORCEMENT POINT</div>
-          <div style="color:rgba(255,255,255,0.95);font-size:11px;margin-bottom:8px;">${p.name}</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:10px;">
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">TYPE</span><br/><span style="color:#22D3EE;">${(p.type||'').toUpperCase()}</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">POLICIES</span><br/><span style="color:rgba(255,255,255,0.95);font-weight:bold;">${p.policies}</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">REGION</span><br/><span style="color:rgba(255,255,255,0.95);">${p.country}</span></div>
+          <div style="color:rgba(255,255,255,0.95);font-size:12px;margin-bottom:8px;">${p.name}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;">
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">TYPE</span><br/><span style="color:#22D3EE;">${(p.type||'').toUpperCase()}</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">POLICIES</span><br/><span style="color:rgba(255,255,255,0.95);font-weight:bold;">${p.policies}</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">REGION</span><br/><span style="color:rgba(255,255,255,0.95);">${p.country}</span></div>
           </div>
         </div>`);
       });
@@ -477,9 +477,9 @@ function CommandMap({
         const rc = p.risk === 'CRITICAL' ? '#EF4444' : p.risk === 'HIGH' ? '#F59E0B' : '#F59E0B';
         popup(coords, `<div style="${pStyle}border:1px solid ${rc}40;">
           <div style="color:#F59E0B;font-size:12px;font-weight:700;margin-bottom:6px;">⚡ DATA FLOW CORRIDOR</div>
-          <div style="color:rgba(255,255,255,0.95);font-size:11px;margin-bottom:8px;">${p.name}</div>
-          <div style="font-size:9px;color:#aaa;">Volume: <span style="color:#fff;">${p.traffic}</span></div>
-          <div style="font-size:9px;color:#aaa;">Risk: <span style="color:${rc};font-weight:bold;">${p.risk}</span></div>
+          <div style="color:rgba(255,255,255,0.95);font-size:12px;margin-bottom:8px;">${p.name}</div>
+          <div style="font-size:12px;color:#aaa;">Volume: <span style="color:#fff;">${p.traffic}</span></div>
+          <div style="font-size:12px;color:#aaa;">Risk: <span style="color:${rc};font-weight:bold;">${p.risk}</span></div>
         </div>`);
       });
 
@@ -490,10 +490,10 @@ function CommandMap({
         const coords = (e.features![0].geometry as any).coordinates;
         popup(coords, `<div style="${pStyle}border:1px solid #10B98140;">
           <div style="color:#10B981;font-size:12px;font-weight:700;margin-bottom:6px;">🖥 IT ASSET CLUSTER</div>
-          <div style="color:rgba(255,255,255,0.95);font-size:11px;margin-bottom:8px;">${p.site}</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:10px;">
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">CATEGORY</span><br/><span style="color:#10B981;">${(p.category||'').toUpperCase()}</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">TOTAL ASSETS</span><br/><span style="color:rgba(255,255,255,0.95);font-weight:bold;">${(p.total_assets||0).toLocaleString()}</span></div>
+          <div style="color:rgba(255,255,255,0.95);font-size:12px;margin-bottom:8px;">${p.site}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;">
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">CATEGORY</span><br/><span style="color:#10B981;">${(p.category||'').toUpperCase()}</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">TOTAL ASSETS</span><br/><span style="color:rgba(255,255,255,0.95);font-weight:bold;">${(p.total_assets||0).toLocaleString()}</span></div>
           </div>
         </div>`);
         onEntityClick?.(p);
@@ -508,11 +508,11 @@ function CommandMap({
         const color = cr > 10 ? '#EF4444' : cr > 6 ? '#F59E0B' : cr > 3 ? '#F59E0B' : '#10B981';
         popup(coords, `<div style="${pStyle}border:1px solid #22D3EE40;">
           <div style="color:#22D3EE;font-size:12px;font-weight:700;margin-bottom:6px;">📧 SIMULATED CAMPAIGN</div>
-          <div style="color:rgba(255,255,255,0.95);font-size:11px;margin-bottom:8px;">${p.title || p.id}</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:10px;">
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">CLICK RATE</span><br/><span style="color:${color};font-weight:bold;">${cr}%</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">SENT</span><br/><span style="color:rgba(255,255,255,0.95);">${(p.sent||0).toLocaleString()}</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">CLICKED</span><br/><span style="color:${color};">${p.clicked||0}</span></div>
+          <div style="color:rgba(255,255,255,0.95);font-size:12px;margin-bottom:8px;">${p.title || p.id}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:12px;">
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">CLICK RATE</span><br/><span style="color:${color};font-weight:bold;">${cr}%</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">SENT</span><br/><span style="color:rgba(255,255,255,0.95);">${(p.sent||0).toLocaleString()}</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">CLICKED</span><br/><span style="color:${color};">${p.clicked||0}</span></div>
           </div>
         </div>`);
       });
@@ -525,10 +525,10 @@ function CommandMap({
         const color = p.severity === 'critical' ? '#EF4444' : p.severity === 'high' ? '#F59E0B' : '#F59E0B';
         popup(coords, `<div style="${pStyle}border:1px solid ${color}40;">
           <div style="color:#EF4444;font-size:12px;font-weight:700;margin-bottom:6px;">🔑 ACCESS RECERTIFICATION</div>
-          <div style="color:rgba(255,255,255,0.95);font-size:11px;margin-bottom:8px;">${p.name}</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:10px;">
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">OVERDUE</span><br/><span style="color:${color};font-weight:bold;">${p.overdue}</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">DEPT</span><br/><span style="color:rgba(255,255,255,0.95);">${p.dept}</span></div>
+          <div style="color:rgba(255,255,255,0.95);font-size:12px;margin-bottom:8px;">${p.name}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;">
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">OVERDUE</span><br/><span style="color:${color};font-weight:bold;">${p.overdue}</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">DEPT</span><br/><span style="color:rgba(255,255,255,0.95);">${p.dept}</span></div>
           </div>
         </div>`);
       });
@@ -541,11 +541,11 @@ function CommandMap({
         const color = p.status === 'Non-Compliant' ? '#EF4444' : p.status === 'At Risk' || p.status === 'Review Due' ? '#F59E0B' : '#10B981';
         popup(coords, `<div style="${pStyle}border:1px solid ${color}40;">
           <div style="color:${color};font-size:12px;font-weight:700;margin-bottom:6px;">📱 APP GOVERNANCE</div>
-          <div style="color:rgba(255,255,255,0.95);font-size:11px;margin-bottom:8px;">${p.name}</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:10px;">
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">STATUS</span><br/><span style="color:${color};">${p.status}</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">RISK</span><br/><span style="color:rgba(255,255,255,0.95);">${p.risk}</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">FINDINGS</span><br/><span style="color:rgba(255,255,255,0.95);">${p.findings}</span></div>
+          <div style="color:rgba(255,255,255,0.95);font-size:12px;margin-bottom:8px;">${p.name}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;">
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">STATUS</span><br/><span style="color:${color};">${p.status}</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">RISK</span><br/><span style="color:rgba(255,255,255,0.95);">${p.risk}</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">FINDINGS</span><br/><span style="color:rgba(255,255,255,0.95);">${p.findings}</span></div>
           </div>
         </div>`);
       });
@@ -558,11 +558,11 @@ function CommandMap({
         const color = p.status === 'Non-Compliant' ? '#EF4444' : p.status === 'Gap Detected' ? '#F59E0B' : '#10B981';
         popup(coords, `<div style="${pStyle}border:1px solid ${color}40;">
           <div style="color:#22D3EE;font-size:12px;font-weight:700;margin-bottom:6px;">📋 ACTIVITY RETENTION</div>
-          <div style="color:rgba(255,255,255,0.95);font-size:11px;margin-bottom:8px;">${p.name}</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:10px;">
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">COVERAGE</span><br/><span style="color:${color};font-weight:bold;">${p.coverage_pct}%</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">DAYS</span><br/><span style="color:rgba(255,255,255,0.95);">${p.days_retained}/180</span></div>
-            <div><span style="color:rgba(255,255,255,0.4);font-size:9px;">STATUS</span><br/><span style="color:${color};">${p.status}</span></div>
+          <div style="color:rgba(255,255,255,0.95);font-size:12px;margin-bottom:8px;">${p.name}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:12px;">
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">COVERAGE</span><br/><span style="color:${color};font-weight:bold;">${p.coverage_pct}%</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">DAYS</span><br/><span style="color:rgba(255,255,255,0.95);">${p.days_retained}/180</span></div>
+            <div><span style="color:rgba(255,255,255,0.4);font-size:12px;">STATUS</span><br/><span style="color:${color};">${p.status}</span></div>
           </div>
         </div>`);
       });

@@ -62,7 +62,7 @@ export default function SearchBar({ onLocate }: SearchBarProps) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 glass-panel-sm px-3 py-2 text-[9px] font-mono tracking-[0.15em] text-[var(--text-muted)] hover:text-[var(--accent-primary)] hover:border-[var(--border-active)] transition-all hover:shadow-[0_0_12px_rgba(34,211,238,0.08)]"
+        className="flex items-center gap-1.5 glass-panel-sm px-3 py-2 text-[12px] font-mono tracking-[0.15em] text-[var(--text-muted)] hover:text-[var(--accent-primary)] hover:border-[var(--border-active)] transition-all hover:shadow-[0_0_12px_rgba(34,211,238,0.08)]"
       >
         <Search className="w-3 h-3" />
         CMD: LOCATE
@@ -83,7 +83,7 @@ export default function SearchBar({ onLocate }: SearchBarProps) {
             if (e.key === 'Enter' && results.length > 0) handleSelect(results[0]);
           }}
           placeholder="ENTER COORDINATES OR TARGET NAME..."
-          className="flex-1 bg-transparent text-[10px] text-[var(--text-primary)] font-mono tracking-wider outline-none placeholder:text-[var(--text-muted)]"
+          className="flex-1 bg-transparent text-[12px] text-[var(--text-primary)] font-mono tracking-wider outline-none placeholder:text-[var(--text-muted)]"
         />
         {loading && <div className="w-3 h-3 border border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />}
         <button onClick={() => { setOpen(false); setValue(''); setResults([]); }} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
@@ -100,7 +100,7 @@ export default function SearchBar({ onLocate }: SearchBarProps) {
               className="w-full text-left px-3 py-2.5 hover:bg-[var(--hover-accent)] transition-colors border-b border-[var(--border-secondary)] last:border-0 flex items-center gap-2"
             >
               <MapPin className="w-3 h-3 text-[var(--accent-primary)] flex-shrink-0" />
-              <span className="text-[9px] text-[var(--text-secondary)] font-mono truncate">{r.label}</span>
+              <span className="text-[12px] text-[var(--text-secondary)] font-mono truncate">{r.label}</span>
             </button>
           ))}
         </div>

@@ -15,7 +15,7 @@ interface Props {
 }
 
 const STATUS_COLOR: Record<StatusLevel, string> = {
-  HEALTHY: '#10B981', WATCH: '#F59E0B', CRITICAL: '#EF4444',
+  HEALTHY: 'var(--status-healthy)', WATCH: 'var(--status-watch)', CRITICAL: 'var(--status-critical)',
 };
 const STATUS_RANK: Record<StatusLevel, number> = { HEALTHY: 0, WATCH: 1, CRITICAL: 2 };
 
@@ -72,7 +72,7 @@ function statusPill(status: StatusLevel) {
   return (
     <span
       className="rounded-full border px-2 py-1 text-[12px] font-medium uppercase tracking-[0.05em]"
-      style={{ color, borderColor: `${color}66`, background: `${color}1A` }}
+      style={{ color, borderColor: color, background: `color-mix(in srgb, ${color} 12%, transparent)` }}
     >
       {status}
     </span>
@@ -82,7 +82,7 @@ function statusPill(status: StatusLevel) {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-y-3">
-      <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">
+      <div className="text-[18px] font-medium text-[var(--text-primary)]">
         {title}
       </div>
       {children}
@@ -98,21 +98,21 @@ function TrendGlyph({ trend }: { trend: number }) {
 
 function BreakdownCell({ name, value, status }: { name: string; value: string; status: StatusLevel }) {
   return (
-    <div className="flex min-h-8 items-center gap-2 rounded-lg border border-[var(--border-hairline)] bg-white/[0.02] px-3 py-2">
+    <div className="flex h-10 items-center gap-2 rounded-lg border border-[var(--border-hairline)] bg-white/[0.02] px-4 py-2">
       <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ backgroundColor: STATUS_COLOR[status] }} />
       <div className="min-w-0 flex-1">
-        <div className="truncate text-[12px] font-medium text-[var(--text-secondary)]">{name}</div>
+        <div className="truncate text-[14px] font-normal text-[var(--text-secondary)]">{name}</div>
       </div>
-      <div className="font-mono text-[12px] font-medium tabular-nums text-[var(--text-secondary)]">{value}</div>
+      <div className="font-mono text-[14px] font-normal tabular-nums text-[var(--text-secondary)]">{value}</div>
     </div>
   );
 }
 
 function AssetMetric({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-lg border border-[var(--border-hairline)] bg-white/[0.02] px-3 py-3">
+    <div className="rounded-lg border border-[var(--border-hairline)] bg-white/[0.02] px-4 py-4">
       <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">{label}</div>
-      <div className="mt-2 font-mono text-[18px] font-medium tabular-nums text-[var(--text-primary)]">{value}</div>
+      <div className="mt-2 font-mono text-[14px] font-normal tabular-nums text-[var(--text-primary)]">{value}</div>
     </div>
   );
 }
@@ -177,7 +177,7 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-[13px] font-normal text-[var(--text-secondary)]">
+            <div className="flex flex-wrap items-center gap-2 text-[14px] font-normal text-[var(--text-secondary)]">
               <span>{site.businessUnit} · {site.region}</span>
               <span className="rounded-md border border-[var(--border-hairline)] bg-white/[0.02] px-2 py-1 font-mono text-[12px] text-[var(--text-tertiary)] tabular-nums">
                 {site.lat.toFixed(4)}°, {site.lng.toFixed(4)}°
@@ -186,7 +186,7 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
             {liveAlerts.length > 0 && (
               <div
                 className="inline-flex w-fit items-center gap-2 rounded-full border px-2.5 py-1 text-[12px] font-medium uppercase tracking-[0.05em]"
-                style={{ borderColor: `${alertChipColor}66`, color: alertChipColor, background: `${alertChipColor}12` }}
+                style={{ borderColor: alertChipColor, color: alertChipColor, background: `color-mix(in srgb, ${alertChipColor} 10%, transparent)` }}
               >
                 <span>Live alerts</span>
                 <span className="font-mono tabular-nums">{liveAlerts.length}</span>
@@ -196,22 +196,22 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
           </div>
         </div>
 
-        <div className="flex-1 space-y-6 overflow-y-auto px-6 py-4 styled-scrollbar">
-          <section className="min-h-[25%] space-y-3 rounded-xl border border-[var(--border-hairline)] bg-white/[0.02] p-6">
+        <div className="flex-1 space-y-6 overflow-y-auto p-5 styled-scrollbar">
+          <section className="min-h-[25%] space-y-3 rounded-xl border border-[var(--border-hairline)] bg-white/[0.02] p-5">
             <div className="flex items-end justify-between gap-4">
               <div className="flex items-end gap-4">
                 <div
-                  className="font-mono text-[72px] font-light leading-none tracking-[-0.05em] tabular-nums"
+                  className="font-mono text-[80px] font-light leading-none tracking-[-0.05em] tabular-nums"
                   style={{ color: postureColor }}
                 >
                   {site.postureScore}
                 </div>
-                <div className="mb-3 flex items-center gap-2 text-[18px] font-medium" style={{ color: postureColor }}>
+                <div className="mb-4 flex items-center gap-2 text-[18px] font-medium" style={{ color: postureColor }}>
                   <TrendGlyph trend={posture.trend} />
                   <span className="font-mono tabular-nums">{posture.trend > 0 ? '+' : ''}{posture.trend}</span>
                 </div>
               </div>
-              <div className="mb-3 text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">
+              <div className="mb-4 text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">
                 Overall posture
               </div>
             </div>
@@ -226,11 +226,11 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
                   return (
                     <div
                       key={key}
-                      className="flex min-h-12 items-center gap-3 rounded-xl border px-4 py-3"
-                      style={{ borderColor: `${color}55`, background: `${color}12` }}
+                      className="flex min-h-[72px] items-center gap-4 rounded-xl border px-4 py-4"
+                      style={{ borderColor: color, background: `color-mix(in srgb, ${color} 10%, transparent)` }}
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-[14px] font-medium" style={{ color }}>{label}</div>
+                        <div className="truncate text-[14px] font-normal" style={{ color }}>{label}</div>
                         <div className="mt-1 font-mono text-[14px] font-normal tabular-nums" style={{ color }}>{value}</div>
                       </div>
                       {statusPill(domain.status)}
@@ -254,11 +254,11 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
           </Section>
 
           <Section title="Asset detail">
-            <Tabs defaultValue="it" className="gap-3">
+            <Tabs defaultValue="it" className="gap-4">
               <TabsList className="grid h-8 w-full grid-cols-3 bg-white/[0.04] text-[12px]">
-                <TabsTrigger value="it" className="text-[12px]">IT</TabsTrigger>
-                <TabsTrigger value="ot" className="text-[12px]">OT</TabsTrigger>
-                <TabsTrigger value="retention" className="text-[12px]">Retention</TabsTrigger>
+                <TabsTrigger value="it" className="text-[12px] font-medium uppercase tracking-[0.05em]">IT</TabsTrigger>
+                <TabsTrigger value="ot" className="text-[12px] font-medium uppercase tracking-[0.05em]">OT</TabsTrigger>
+                <TabsTrigger value="retention" className="text-[12px] font-medium uppercase tracking-[0.05em]">Retention</TabsTrigger>
               </TabsList>
               <TabsContent value="it" className="grid grid-cols-2 gap-2">
                 <AssetMetric label="Servers" value={site.domains.it_assets.servers.toLocaleString()} />
@@ -282,7 +282,7 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
           <Section title="Recent activity">
             <div className="space-y-2">
               {site.recentActivity.slice(0, 5).map((activity, index) => (
-                <div key={`${activity.time}-${index}`} className="flex min-h-12 items-start gap-3 border-b border-[var(--border-hairline)] py-2 last:border-0">
+                <div key={`${activity.time}-${index}`} className="flex min-h-14 items-start gap-4 border-b border-[var(--border-hairline)] py-2 last:border-0">
                   <span className="mt-2 h-2 w-2 flex-shrink-0 rounded-full bg-[var(--status-neutral)]" />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[14px] font-normal text-[var(--text-secondary)]">{activity.title}</div>

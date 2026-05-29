@@ -295,16 +295,17 @@ html, body {
 
 .hud-label {
   font-family: var(--font-hud);
-  font-size: 7px;
-  letter-spacing: 0.2em;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
 .hud-value {
   font-family: var(--font-hud);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 400;
   color: var(--cyan-primary);
   font-variant-numeric: tabular-nums;
 }
@@ -363,7 +364,7 @@ html, body {
 .maplibregl-popup-content { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
 .maplibregl-popup-tip { display: none !important; }
 .maplibregl-ctrl-attrib { display: none !important; }
-.maplibregl-popup-close-button { color: var(--text-muted) !important; font-size: 16px !important; padding: 4px 8px !important; }
+.maplibregl-popup-close-button { color: var(--text-muted) !important; font-size: 18px !important; padding: 4px 8px !important; }
 .maplibregl-popup-close-button:hover { color: var(--accent-primary-legacy) !important; }
 
 .map-focus-active .maplibregl-canvas-container { filter: brightness(0.3); transition: filter 0.3s ease; }
@@ -446,7 +447,7 @@ html, body {
 .mobile-nav-btn {
   display: flex; flex-direction: column; align-items: center; gap: 1px;
   padding: 5px 6px; border-radius: 8px;
-  font-family: var(--font-hud); font-size: 6px; letter-spacing: 0.08em;
+  font-family: var(--font-hud); font-size: 12px; letter-spacing: 0.08em;
   color: var(--text-muted); background: transparent;
   border: none; cursor: pointer; transition: all 0.2s ease;
   text-transform: uppercase;
@@ -488,7 +489,7 @@ html, body {
   .desktop-panel { display: none !important; }
 
   /* Adjust map popups for touch */
-  .maplibregl-popup { max-width: 260px !important; font-size: 10px !important; }
+  .maplibregl-popup { max-width: 260px !important; font-size: 14px !important; }
   .maplibregl-popup-content { max-width: 260px !important; padding: 8px !important; }
   .maplibregl-popup-close-button { font-size: 18px !important; padding: 4px 8px !important; }
 
@@ -505,7 +506,7 @@ html, body {
 /* Small phones */
 @media (max-width: 390px) {
   :root { --edge-pad: 4px; }
-  .mobile-nav-btn { padding: 4px 3px; font-size: 5px; }
+  .mobile-nav-btn { padding: 4px 3px; font-size: 12px; }
   .mobile-nav-btn svg { width: 14px; height: 14px; }
 }
 
@@ -516,7 +517,7 @@ html, body {
   .status-bar-desktop { display: none !important; }
   .mobile-nav { display: block; }
   .mobile-nav-inner { padding: 4px 2px 2px; }
-  .mobile-nav-btn { padding: 3px 4px; font-size: 5px; }
+  .mobile-nav-btn { padding: 3px 4px; font-size: 12px; }
   .mobile-nav-btn svg { width: 14px; height: 14px; }
   .mobile-nav-btn span { display: none; }
   .mobile-drawer-handle { margin: 4px auto 4px; }
@@ -541,7 +542,7 @@ html, body {
 }
 
 @media (min-width: 3440px) {
-  :root { font-size: 20px; }
+  :root { font-size: 18px; }
   .glass-panel { min-width: 320px; }
 }
 
@@ -797,7 +798,7 @@ html, body {
   position: relative;
   overflow: hidden;
   font-family: var(--font-hud);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-primary);
@@ -920,7 +921,7 @@ html, body {
   align-items: center;
   gap: 6px;
   font-family: var(--font-hud);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -965,7 +966,7 @@ html, body {
   border: 1px solid transparent;
   border-radius: 6px;
   font-family: var(--font-hud);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
   transition:
     background 0.25s cubic-bezier(0.4, 0, 0.2, 1),
@@ -1007,7 +1008,7 @@ html, body {
   z-index: 9999;
   padding: 8px 14px;
   font-family: var(--font-hud);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.06em;
   color: var(--text-primary);
   background: rgba(12, 14, 26, 0.92);
@@ -1261,7 +1262,7 @@ html, body {
   width: 18px;
   height: 18px;
   font-family: var(--font-hud);
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 700;
   color: #fff;
 }
@@ -1479,7 +1480,7 @@ html, body {
 }
 .gotham-stat__label {
   font-family: var(--font-hud);
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -1493,7 +1494,7 @@ html, body {
   padding: 2px 8px;
   border-radius: 3px;
   font-family: var(--font-hud);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1525,7 +1526,7 @@ html, body {
 }
 .gotham-divider__label {
   font-family: var(--font-hud);
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -1627,8 +1628,8 @@ html, body {
 }
 
 .gotham-command-bar__title {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 400;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--text-heading);
@@ -1731,7 +1732,7 @@ html, body {
 
 .gotham-card__title {
   font-family: var(--font-hud);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1740,7 +1741,7 @@ html, body {
 
 .gotham-card__body {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.6;
   color: var(--text-secondary);
 }
@@ -1799,7 +1800,7 @@ html, body {
 
 .gotham-stat__label {
   font-family: var(--font-hud);
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -1808,7 +1809,7 @@ html, body {
 
 .gotham-stat__delta {
   font-family: var(--font-hud);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--alert-green);
@@ -1826,11 +1827,11 @@ html, body {
 }
 
 .gotham-stat--compact .gotham-stat__value {
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .gotham-stat--compact .gotham-stat__label {
-  font-size: 7px;
+  font-size: 12px;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -1874,7 +1875,7 @@ html, body {
   padding: 0 14px;
   background: var(--bg-secondary);
   font-family: var(--font-hud);
-  font-size: 7px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -1915,7 +1916,7 @@ html, body {
   gap: 5px;
   padding: 3px 10px;
   font-family: var(--font-hud);
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -2184,7 +2185,7 @@ html, body {
 
 .gotham-sidebar__section-title {
   font-family: var(--font-hud);
-  font-size: 7px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -2236,7 +2237,7 @@ html, body {
   align-items: center;
   padding: 2px 8px;
   font-family: var(--font-hud);
-  font-size: 7px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
