@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Activity, Bell, ChartNoAxesCombined, Cpu, Gauge, Map, MonitorCog, Shield, Users } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { WALL_VIEW_COMPONENTS } from '@/components/wall/WallViews';
+import type { SiteRecord } from '@/data/sites';
 import type { ViewId, WallFilters, WallSlot } from '@/server/wallState';
 
 type ViewRendererProps = {
@@ -11,7 +12,8 @@ type ViewRendererProps = {
   filters: WallFilters;
   slot: WallSlot;
   suppressTransition?: boolean;
-  mode?: 'wall' | 'preview';
+  mode?: 'display' | 'preview' | 'control';
+  onDraftSiteSelect?: (site: SiteRecord) => void;
 };
 
 export const WALL_VIEW_META: Record<ViewId, {
@@ -30,7 +32,7 @@ export const WALL_VIEW_META: Record<ViewId, {
   blank: { label: 'Blank', kicker: 'Idle wall slot', Icon: Shield },
 };
 
-export function ViewRenderer({ view, filters, slot, suppressTransition = false, mode = 'wall' }: ViewRendererProps) {
+export function ViewRenderer({ view, filters, slot, suppressTransition = false, mode = 'display', onDraftSiteSelect }: ViewRendererProps) {
   const meta = WALL_VIEW_META[view];
   const Icon = meta.Icon;
   const WallView = WALL_VIEW_COMPONENTS[view];
@@ -54,6 +56,14 @@ export function ViewRenderer({ view, filters, slot, suppressTransition = false, 
     );
   }
 
+  if (mode === 'control') {
+    return (
+      <div className="relative h-[72vh] min-h-[560px] overflow-hidden rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-[var(--sc-bg-1)]">
+        <WallView filters={filters} slot={slot} mode="control" onDraftSiteSelect={onDraftSiteSelect} />
+      </div>
+    );
+  }
+
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.section
@@ -64,7 +74,7 @@ export function ViewRenderer({ view, filters, slot, suppressTransition = false, 
         exit={suppressTransition ? undefined : { opacity: 0 }}
         transition={{ duration: suppressTransition ? 0 : 0.4, ease: 'easeInOut' }}
       >
-        <WallView filters={filters} slot={slot} />
+        <WallView filters={filters} slot={slot} mode="display" />
       </motion.section>
     </AnimatePresence>
   );

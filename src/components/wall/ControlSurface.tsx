@@ -1,13 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
+  Download,
   LayoutGrid,
   Monitor,
   Radio,
   RotateCcw,
   Search,
   SlidersHorizontal,
+  Upload,
   X,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -131,6 +133,13 @@ function viewLabel(view: ViewId) {
   return WALL_VIEW_META[view].label;
 }
 
+function filtersEqual(a: WallFilters, b: WallFilters) {
+  return a.selectedSiteId === b.selectedSiteId
+    && a.timeRange === b.timeRange
+    && a.activeDomains.length === b.activeDomains.length
+    && a.activeDomains.every(key => b.activeDomains.includes(key));
+}
+
 function ControlSurfaceInner() {
   const {
     state,
@@ -141,14 +150,28 @@ function ControlSurfaceInner() {
     resetWall,
   } = useWallState();
   const [siteQuery, setSiteQuery] = useState('');
+  const [draftFilters, setDraftFilters] = useState<WallFilters | null>(null);
+  const [exploreView, setExploreView] = useState<ViewId>('map');
 
-  const filters = state?.filters ?? {
+  const liveFilters = state?.filters ?? {
     selectedSiteId: null,
     timeRange: '24h',
     activeDomains: ALL_DOMAIN_KEYS,
   };
+  const filters = draftFilters ?? liveFilters;
   const assignments = state?.screenAssignments;
+  const liveSite = MASTER_SITES.find(site => site.id === liveFilters.selectedSiteId) ?? null;
   const selectedSite = MASTER_SITES.find(site => site.id === filters.selectedSiteId) ?? null;
+  const draftInSync = filtersEqual(filters, liveFilters);
+
+  useEffect(() => {
+    if (state) {
+      setDraftFilters(current => current ?? {
+        ...state.filters,
+        activeDomains: [...state.filters.activeDomains],
+      });
+    }
+  }, [state]);
 
   const filteredSites = useMemo(() => {
     const query = siteQuery.trim().toLowerCase();
@@ -160,18 +183,43 @@ function ControlSurfaceInner() {
     ));
   }, [siteQuery]);
 
-  async function toggleDomain(domainKey: string, checked: boolean) {
+  function updateDraft(partial: Partial<WallFilters>) {
+    setDraftFilters(current => {
+      const base = current ?? liveFilters;
+      return {
+        ...base,
+        ...partial,
+        activeDomains: partial.activeDomains ? [...partial.activeDomains] : [...base.activeDomains],
+      };
+    });
+  }
+
+  function toggleDomain(domainKey: string, checked: boolean) {
     const nextDomains = checked
       ? Array.from(new Set([...filters.activeDomains, domainKey]))
       : filters.activeDomains.filter(key => key !== domainKey);
-    await updateFilters({ activeDomains: nextDomains });
+    updateDraft({ activeDomains: nextDomains });
   }
 
   async function applyPreset(preset: LayoutPreset) {
-    await updateFilters(preset.filters);
+    setDraftFilters({
+      ...preset.filters,
+      activeDomains: [...preset.filters.activeDomains],
+    });
     await Promise.all(
       WALL_SLOTS.map(slot => assignSlot(slot, preset.assignments[slot]))
     );
+  }
+
+  async function pushDraftToWall() {
+    await updateFilters(filters);
+  }
+
+  function syncDraftFromWall() {
+    setDraftFilters({
+      ...liveFilters,
+      activeDomains: [...liveFilters.activeDomains],
+    });
   }
 
   return (
@@ -200,6 +248,69 @@ function ControlSurfaceInner() {
             </Badge>
           </div>
         </header>
+
+        <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto_auto]">
+          <Card className="border-[var(--sc-border)] bg-black/25">
+            <CardContent className="flex items-center justify-between gap-3 p-4">
+              <div>
+                <p className="font-mono text-ui-xs uppercase tracking-[0.18em] text-[var(--sc-status-ok)]">On Wall</p>
+                <p className="mt-1 text-ui-lg font-semibold text-[var(--sc-text-strong)]">{liveSite ? liveSite.name : 'Enterprise-wide'}</p>
+                <p className="mt-1 font-mono text-ui-xs uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">
+                  {liveFilters.timeRange} · {liveFilters.activeDomains.length} domains
+                </p>
+              </div>
+              <Radio className="h-5 w-5 text-[var(--sc-status-ok)]" />
+            </CardContent>
+          </Card>
+          <Card className="border-[var(--sc-border)] bg-[color-mix(in_srgb,var(--sc-primary)_10%,transparent)]">
+            <CardContent className="flex items-center justify-between gap-3 p-4">
+              <div>
+                <p className="font-mono text-ui-xs uppercase tracking-[0.18em] text-[var(--sc-primary)]">Exploring Draft</p>
+                <p className="mt-1 text-ui-lg font-semibold text-[var(--sc-text-strong)]">{selectedSite ? selectedSite.name : 'Enterprise-wide'}</p>
+                <p className="mt-1 font-mono text-ui-xs uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">
+                  {draftInSync ? 'In sync with wall' : 'Private draft only'}
+                </p>
+              </div>
+              <SlidersHorizontal className="h-5 w-5 text-[var(--sc-primary)]" />
+            </CardContent>
+          </Card>
+          <Button type="button" className="h-full min-h-20 justify-center" onClick={() => { void pushDraftToWall(); }} disabled={draftInSync}>
+            <Upload className="h-4 w-4" />
+            Push to wall
+          </Button>
+          <Button type="button" variant="outline" className="h-full min-h-20 justify-center" onClick={syncDraftFromWall}>
+            <Download className="h-4 w-4" />
+            Sync from wall
+          </Button>
+        </div>
+
+        <Card className="border-[var(--sc-border)] bg-[var(--sc-surface-solid)]">
+          <CardHeader className="flex flex-row items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-[var(--sc-text-strong)]">Explore Privately</CardTitle>
+              <CardDescription>Interactive control view. Map clicks update draft only.</CardDescription>
+            </div>
+            <Select value={exploreView} onValueChange={next => setExploreView(next as ViewId)}>
+              <SelectTrigger className="w-[240px] border-[var(--sc-border)] bg-[var(--sc-bg-1)]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {WALL_VIEWS.map(option => (
+                  <SelectItem key={option} value={option}>{viewLabel(option)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardHeader>
+          <CardContent>
+            <ViewRenderer
+              view={exploreView}
+              filters={filters}
+              slot="1"
+              mode="control"
+              onDraftSiteSelect={site => updateDraft({ selectedSiteId: site.id })}
+            />
+          </CardContent>
+        </Card>
 
         <div className="grid gap-5 xl:grid-cols-[minmax(680px,1.2fr)_minmax(420px,0.8fr)]">
           <Card className="border-[var(--sc-border)] bg-[var(--sc-surface-solid)]">
@@ -236,7 +347,7 @@ function ControlSurfaceInner() {
                         </Select>
                       </CardHeader>
                       <CardContent>
-                        <ViewRenderer view={view} filters={filters} slot={slot} mode="preview" />
+                        <ViewRenderer view={view} filters={liveFilters} slot={slot} mode="preview" />
                       </CardContent>
                     </Card>
                   );
@@ -252,7 +363,7 @@ function ControlSurfaceInner() {
                   <SlidersHorizontal className="h-5 w-5 text-[var(--sc-primary)]" />
                   Filters
                 </CardTitle>
-                <CardDescription>Scope every wall slot from one workstation.</CardDescription>
+                <CardDescription>Draft filters are private until Push to wall.</CardDescription>
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="site" className="w-full">
@@ -279,7 +390,7 @@ function ControlSurfaceInner() {
                             <button
                               key={site.id}
                               className="flex items-center justify-between rounded-[var(--sc-radius)] px-3 py-2 text-left text-ui-sm hover:bg-[var(--sc-hover)]"
-                              onClick={() => updateFilters({ selectedSiteId: site.id })}
+                              onClick={() => updateDraft({ selectedSiteId: site.id })}
                             >
                               <span>
                                 <span className="block text-[var(--sc-text-strong)]">{site.name}</span>
@@ -302,7 +413,7 @@ function ControlSurfaceInner() {
                           key={range}
                           variant={filters.timeRange === range ? 'default' : 'outline'}
                           className="h-10"
-                          onClick={() => updateFilters({ timeRange: range })}
+                          onClick={() => updateDraft({ timeRange: range })}
                         >
                           {range}
                         </Button>
@@ -350,7 +461,7 @@ function ControlSurfaceInner() {
                       </p>
                     </div>
                     {selectedSite && (
-                      <Button variant="outline" size="sm" onClick={() => updateFilters({ selectedSiteId: null })}>
+                      <Button variant="outline" size="sm" onClick={() => updateDraft({ selectedSiteId: null })}>
                         <X className="h-4 w-4" />
                         Clear
                       </Button>
@@ -363,7 +474,7 @@ function ControlSurfaceInner() {
             <Card className="border-[var(--sc-border)] bg-[var(--sc-surface-solid)]">
               <CardHeader>
                 <CardTitle className="text-[var(--sc-text-strong)]">Layout Presets</CardTitle>
-                <CardDescription>Reassign all six slots and reset filters in one click.</CardDescription>
+                <CardDescription>Presets update wall layout now and stage their filters as draft.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-2 sm:grid-cols-2">
                 {PRESETS.map(preset => (
@@ -389,7 +500,17 @@ function ControlSurfaceInner() {
                   Wall Session
                 </CardTitle>
                 <CardAction>
-                  <Button variant="destructive" size="sm" onClick={() => resetWall()}>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={async () => {
+                      await resetWall();
+                      setDraftFilters({
+                        ...PRESETS[0].filters,
+                        activeDomains: [...PRESETS[0].filters.activeDomains],
+                      });
+                    }}
+                  >
                     <RotateCcw className="h-4 w-4" />
                     Reset
                   </Button>

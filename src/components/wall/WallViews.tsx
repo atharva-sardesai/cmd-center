@@ -23,6 +23,8 @@ import type { ViewId, WallFilters, WallSlot } from '@/server/wallState';
 type WallViewProps = {
   filters: WallFilters;
   slot: WallSlot;
+  mode?: 'display' | 'control';
+  onDraftSiteSelect?: (site: SiteRecord) => void;
 };
 
 type MapBoundaryProps = {
@@ -65,6 +67,12 @@ const SEVERITY_COLOR: Record<SevLevel, string> = {
   MEDIUM: 'var(--sc-status-watch)',
   HIGH: 'var(--sc-status-watch)',
   CRITICAL: 'var(--sc-status-critical)',
+};
+
+const STATUS_RANK: Record<StatusLevel, number> = {
+  HEALTHY: 0,
+  WATCH: 1,
+  CRITICAL: 2,
 };
 
 function getScopedSites(filters: WallFilters): SiteRecord[] {
@@ -174,7 +182,7 @@ function trendPoints(filters: WallFilters) {
   });
 }
 
-export function MapWallView({ filters, slot }: WallViewProps) {
+export function MapWallView({ filters, slot, mode = 'display', onDraftSiteSelect }: WallViewProps) {
   const selected = filters.selectedSiteId ? SITE_BY_ID.get(filters.selectedSiteId) : null;
   const scopedSites = getScopedSites(filters);
   const statusCounts = getStatusCounts(scopedSites);
@@ -214,6 +222,8 @@ export function MapWallView({ filters, slot }: WallViewProps) {
           mapStyle="dark"
           markerScale={0.62}
           markerOpacity={0.55}
+          interactive={mode === 'control'}
+          onSiteClick={mode === 'control' ? onDraftSiteSelect : undefined}
         />
       </MapErrorBoundary>
       <div className="pointer-events-none absolute left-5 right-5 top-5 grid grid-cols-[320px_1fr_320px] gap-4">
@@ -246,36 +256,42 @@ export function MapWallView({ filters, slot }: WallViewProps) {
         <div className="pointer-events-none" />
 
         <GlassPanel className="pointer-events-auto max-h-[calc(100vh-40px)] overflow-hidden p-4">
-          <div className="rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/25 p-3">
-            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--sc-primary)]">Live Activity</p>
-            <div className="mt-2 flex flex-col gap-2">
-              {recentEvents.slice(0, 4).map(event => (
-                <div key={`${event.site}-${event.title}-${event.time}`} className="grid grid-cols-[44px_1fr] gap-2 text-[12px]">
-                  <span className="font-mono text-[var(--sc-text-muted)]">{new Date(event.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                  <span className="truncate text-[var(--sc-text)]">{event.site}: {event.title}</span>
+          {selected ? (
+            <MapSiteSummary site={selected} />
+          ) : (
+            <>
+              <div className="rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/25 p-3">
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--sc-primary)]">Live Activity</p>
+                <div className="mt-2 flex flex-col gap-2">
+                  {recentEvents.slice(0, 4).map(event => (
+                    <div key={`${event.site}-${event.title}-${event.time}`} className="grid grid-cols-[44px_1fr] gap-2 text-[12px]">
+                      <span className="font-mono text-[var(--sc-text-muted)]">{new Date(event.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      <span className="truncate text-[var(--sc-text)]">{event.site}: {event.title}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-          <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--sc-primary)]">Lowest Posture Sites</p>
-          <div className="mt-3 max-h-[42vh] overflow-auto pr-1">
-            <div className="flex flex-col gap-2">
-              {rankedSites.map(site => (
-                <div key={site.id} className="grid grid-cols-[1fr_54px] items-center gap-2 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/25 px-3 py-2">
-                  <div className="min-w-0">
-                    <p className="truncate text-[14px] font-semibold text-[var(--sc-text-strong)]">{site.name}</p>
-                    <p className="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">
-                      {site.region} · {site.domains.exposure.criticals} criticals · {site.domains.ot_assets.plcs} PLCs
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-end gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: STATUS_COLOR[site.domains.posture_index.status] }} />
-                    <span className="font-mono text-[18px] font-semibold" style={{ color: STATUS_COLOR[site.domains.posture_index.status] }}>{site.postureScore}</span>
-                  </div>
+              </div>
+              <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--sc-primary)]">Lowest Posture Sites</p>
+              <div className="mt-3 max-h-[42vh] overflow-auto pr-1">
+                <div className="flex flex-col gap-2">
+                  {rankedSites.map(site => (
+                    <div key={site.id} className="grid grid-cols-[1fr_54px] items-center gap-2 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/25 px-3 py-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-[14px] font-semibold text-[var(--sc-text-strong)]">{site.name}</p>
+                        <p className="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">
+                          {site.region} · {site.domains.exposure.criticals} criticals · {site.domains.ot_assets.plcs} PLCs
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-end gap-2">
+                        <span className="h-2.5 w-2.5 rounded-full" style={{ background: STATUS_COLOR[site.domains.posture_index.status] }} />
+                        <span className="font-mono text-[18px] font-semibold" style={{ color: STATUS_COLOR[site.domains.posture_index.status] }}>{site.postureScore}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+            </>
+          )}
         </GlassPanel>
       </div>
       <div className="pointer-events-none absolute bottom-5 left-[345px] right-[345px] grid grid-cols-4 gap-3">
@@ -288,6 +304,62 @@ export function MapWallView({ filters, slot }: WallViewProps) {
         DEMO DATA
       </div>
     </section>
+  );
+}
+
+function MapSiteSummary({ site }: { site: SiteRecord }) {
+  const domainItems = (Object.entries(site.domains) as Array<[DomainKey, SiteRecord['domains'][DomainKey]]>)
+    .filter(([key]) => key !== 'posture_index')
+    .sort(([, a], [, b]) => STATUS_RANK[b.status] - STATUS_RANK[a.status] || a.score - b.score)
+    .slice(0, 3);
+  const otTotal = site.domains.ot_assets.plcs + site.domains.ot_assets.hmis + site.domains.ot_assets.scada;
+  const itTotal = site.domains.it_assets.servers + site.domains.it_assets.endpoints + site.domains.it_assets.network + site.domains.it_assets.cloud;
+  const openCriticals = site.domains.exposure.criticals + site.domains.access_recert.overdue;
+
+  return (
+    <div className="flex max-h-[calc(100vh-72px)] flex-col overflow-hidden">
+      <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--sc-primary)]">Selected Site Summary</p>
+      <div className="mt-2">
+        <h2 className="truncate text-[24px] font-semibold leading-tight text-[var(--sc-text-strong)]">{site.name}</h2>
+        <p className="mt-1 truncate font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">
+          {site.businessUnit} · {site.region} · {site.lat.toFixed(2)}, {site.lng.toFixed(2)}
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/25 p-4">
+        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">Posture Score</p>
+        <div className="mt-2 flex items-end justify-between gap-3">
+          <p className="font-mono text-[58px] font-semibold leading-none" style={{ color: STATUS_COLOR[site.domains.posture_index.status] }}>
+            {site.postureScore}
+          </p>
+          <p className="mb-2 font-mono text-[12px] uppercase tracking-[0.12em]" style={{ color: STATUS_COLOR[site.domains.posture_index.status] }}>
+            {site.domains.posture_index.status}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <MiniMetric label="Open Risk" value={openCriticals} tone={openCriticals > 10 ? 'critical' : 'watch'} />
+        <MiniMetric label="OT Assets" value={otTotal} tone="ok" />
+        <MiniMetric label="IT Assets" value={itTotal} />
+        <MiniMetric label="Training" value={`${site.domains.awareness.completion_pct}%`} tone={site.domains.awareness.completion_pct >= 85 ? 'ok' : 'watch'} />
+      </div>
+
+      <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--sc-primary)]">Worst Domains</p>
+      <div className="mt-2 flex min-h-0 flex-col gap-2 overflow-auto pr-1">
+        {domainItems.map(([key, domain]) => (
+          <div key={key} className="rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/25 px-3 py-2">
+            <div className="flex items-center justify-between gap-3">
+              <p className="truncate text-[13px] font-semibold text-[var(--sc-text-strong)]">{ALL_LAYERS.find(layer => layer.key === key)?.label ?? key}</p>
+              <p className="font-mono text-[15px] font-semibold" style={{ color: STATUS_COLOR[domain.status] }}>{domain.score}</p>
+            </div>
+            <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.12em]" style={{ color: STATUS_COLOR[domain.status] }}>
+              {domain.status} · trend {domain.trend > 0 ? '+' : ''}{domain.trend}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

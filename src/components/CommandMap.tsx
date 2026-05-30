@@ -20,6 +20,7 @@ interface CommandMapProps {
   mapStyle?: string;
   markerScale?: number;
   markerOpacity?: number;
+  interactive?: boolean;
 }
 
 function computeSolarTerminator(): [number, number][] {
@@ -82,6 +83,7 @@ function CommandMap({
   flyToLocation, projection = 'globe', mapStyle = 'dark',
   markerScale = 1,
   markerOpacity = 0.7,
+  interactive = true,
 }: CommandMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -116,6 +118,7 @@ function CommandMap({
       center: [10, 20], zoom: 2.0, minZoom: 1.5, maxZoom: 18,
       attributionControl: false,
       maxPitch: 85,
+      interactive,
       dragPan: { inertia: true, inertiaDeceleration: 2800, inertiaMaxSpeed: 1200 } as any,
     });
 
