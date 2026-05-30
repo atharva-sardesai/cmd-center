@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { Activity, Bell, ChartNoAxesCombined, Cpu, Gauge, Map, MonitorCog, Shield, Users } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { GlassPanel } from '@/components/ui/glass-panel';
 import { ALL_LAYERS } from '@/data/layerMap';
 import type { ViewId, WallFilters, WallSlot } from '@/server/wallState';
@@ -11,12 +12,13 @@ type ViewRendererProps = {
   filters: WallFilters;
   slot: WallSlot;
   suppressTransition?: boolean;
+  mode?: 'wall' | 'preview';
 };
 
-const VIEW_META: Record<ViewId, {
+export const WALL_VIEW_META: Record<ViewId, {
   label: string;
   kicker: string;
-  Icon: typeof Map;
+  Icon: LucideIcon;
 }> = {
   map: { label: 'Map View', kicker: 'Enterprise geography', Icon: Map },
   alerts: { label: 'Alerts Board', kicker: 'Prioritized event queue', Icon: Bell },
@@ -33,11 +35,30 @@ function domainLabel(key: string) {
   return ALL_LAYERS.find(layer => layer.key === key)?.label ?? key;
 }
 
-export function ViewRenderer({ view, filters, slot, suppressTransition = false }: ViewRendererProps) {
-  const meta = VIEW_META[view];
+export function ViewRenderer({ view, filters, slot, suppressTransition = false, mode = 'wall' }: ViewRendererProps) {
+  const meta = WALL_VIEW_META[view];
   const Icon = meta.Icon;
   const activeLabels = filters.activeDomains.slice(0, 5).map(domainLabel);
   const remainingDomains = Math.max(filters.activeDomains.length - activeLabels.length, 0);
+
+  if (mode === 'preview') {
+    return (
+      <div className="flex h-full min-h-[120px] flex-col justify-between overflow-hidden rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-[var(--sc-bg-1)] p-3 text-[var(--sc-text)]">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--sc-primary)]">S{slot}</p>
+            <h3 className="mt-1 text-sm font-semibold leading-tight text-[var(--sc-text-strong)]">{meta.label}</h3>
+          </div>
+          <Icon className="h-5 w-5 shrink-0 text-[var(--sc-primary)]" strokeWidth={1.8} />
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">
+          <span>{filters.timeRange}</span>
+          <span>{filters.activeDomains.length} domains</span>
+          <span>{filters.selectedSiteId ? 'site' : 'enterprise'}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AnimatePresence mode="wait" initial={false}>
