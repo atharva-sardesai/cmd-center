@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Minus, AlertTriangle } from 'lucide-react';
 import { GlassPanel } from '@/components/ui/glass-panel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ReactNode } from 'react';
@@ -159,10 +159,10 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 40 }}
         transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-        className="pointer-events-auto"
+        className="pointer-events-auto h-full max-h-[calc(100dvh-112px)]"
         style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: '100%' }}
       >
-        <GlassPanel className="flex h-full flex-col overflow-hidden">
+        <GlassPanel className="flex h-full max-h-full flex-col overflow-hidden">
         <div className="flex-shrink-0 border-b border-[var(--border-hairline)] px-6 py-6">
           <div className="space-y-3">
             <div className="flex items-start justify-between gap-4">
@@ -294,6 +294,41 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
               ))}
             </div>
           </Section>
+
+          <Section title="Live alerts">
+            <div className="max-h-48 space-y-2 overflow-y-auto pr-1 styled-scrollbar">
+              {liveAlerts.length === 0 ? (
+                <div className="rounded-xl border border-[var(--border-hairline)] bg-white/[0.02] px-4 py-4 text-[14px] font-normal text-[var(--text-secondary)]">
+                  No live alerts for this site
+                </div>
+              ) : liveAlerts.map((alert, index) => {
+                const color = alert.severity === 'CRITICAL' ? STATUS_COLOR.CRITICAL : STATUS_COLOR.WATCH;
+                return (
+                  <div
+                    key={`${alert.time}-${index}`}
+                    className="flex min-h-14 items-start gap-4 rounded-xl border border-[var(--border-hairline)] bg-white/[0.02] px-4 py-3"
+                  >
+                    <span className="mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border" style={{ borderColor: color, color }}>
+                      <AlertTriangle className="h-3 w-3" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[14px] font-normal text-[var(--text-primary)]">{alert.title}</div>
+                      <div className="mt-1 text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">
+                        {alert.severity} · {alert.type} · {new Date(alert.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                    <span
+                      className="rounded-full border px-2 py-1 text-[12px] font-medium uppercase tracking-[0.05em]"
+                      style={{ color, borderColor: color, background: `color-mix(in srgb, ${color} 10%, transparent)` }}
+                    >
+                      {alert.severity}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </Section>
+
         </div>
         </GlassPanel>
       </motion.div>

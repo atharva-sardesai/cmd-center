@@ -584,18 +584,22 @@ export default function Dashboard() {
       </div>
 
       {/* ── RIGHT HUD (desktop) ── */}
-      <div className="desktop-panel absolute right-5 top-16 bottom-12 w-80 flex flex-col gap-3 z-[200] pointer-events-auto overflow-y-auto styled-scrollbar pr-1">
-        <div className="flex gap-2 items-start">
-          <div className="flex-1"><SearchBar onLocate={(lat, lng) => setFlyToLocation({ lat, lng, ts: Date.now() })} /></div>
-          <div className="relative"><SharePanel mapView={mapView} activeLayers={activeLayers} mouseCoords={mouseCoords} /></div>
+      {!selectedSite && (
+        <div className="desktop-panel absolute right-5 top-16 bottom-12 w-80 flex flex-col gap-3 z-[200] pointer-events-auto overflow-y-auto styled-scrollbar pr-1">
+          <div className="flex gap-2 items-start">
+            <div className="flex-1"><SearchBar onLocate={(lat, lng) => setFlyToLocation({ lat, lng, ts: Date.now() })} /></div>
+            <div className="relative"><SharePanel mapView={mapView} activeLayers={activeLayers} mouseCoords={mouseCoords} /></div>
+          </div>
+          <LiveAlerts data={data} onLocate={(lat, lng) => setFlyToLocation({ lat, lng, ts: Date.now() })} onWatchFeed={() => {}} />
         </div>
-        <LiveAlerts data={data} onLocate={(lat, lng) => setFlyToLocation({ lat, lng, ts: Date.now() })} onWatchFeed={() => {}} />
-      </div>
+      )}
 
-      {/* ── SITE DETAIL PANEL (desktop) — slides over the right HUD ── */}
-      <div className="desktop-panel absolute right-5 top-16 bottom-12 w-80 z-[350] pointer-events-none">
-        <SiteDetailPanel site={selectedSite} onClose={() => setSelectedSiteId(null)} />
-      </div>
+      {/* ── SITE DETAIL PANEL (desktop) — only right-side panel while selected ── */}
+      {selectedSite && (
+        <div className="desktop-panel absolute right-5 top-16 bottom-12 w-80 z-[350] pointer-events-none">
+          <SiteDetailPanel site={selectedSite} onClose={() => setSelectedSiteId(null)} />
+        </div>
+      )}
 
       {/* ═══ MOBILE UI ═══ */}
       {isMobile && (
