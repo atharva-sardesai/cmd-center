@@ -35,6 +35,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ALL_LAYERS } from '@/data/layerMap';
 import { MASTER_SITES } from '@/data/sites';
+import { formatClockTime } from '@/lib/format';
 import { WallStateProvider, useWallState } from '@/lib/useWallState';
 import { ViewRenderer, WALL_VIEW_META } from '@/components/wall/ViewRenderer';
 import type { TimeRange, ViewId, WallFilters, WallSlot } from '@/server/wallState';
@@ -116,11 +117,9 @@ const PRESETS: LayoutPreset[] = [
 
 function formatTime(value?: string) {
   if (!value) return 'No update yet';
-  return new Intl.DateTimeFormat('en', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  }).format(new Date(value));
+  const date = new Date(value);
+  const seconds = date.getSeconds().toString().padStart(2, '0');
+  return `${formatClockTime(date).replace(/ (AM|PM)$/, '')}:${seconds} ${date.getHours() >= 12 ? 'PM' : 'AM'}`;
 }
 
 function statusClass(status: string) {

@@ -19,6 +19,7 @@ import { SiteDetailSummary } from '@/components/SiteDetailPanel';
 import { GlassPanel } from '@/components/ui/glass-panel';
 import { ALL_LAYERS } from '@/data/layerMap';
 import { MASTER_SITES, SITE_BY_ID, type SevLevel, type SiteRecord, type StatusLevel } from '@/data/sites';
+import { formatClockTime } from '@/lib/format';
 import type { ViewId, WallFilters, WallSlot } from '@/server/wallState';
 
 type WallViewProps = {
@@ -257,7 +258,7 @@ export function MapWallView({ filters, slot, mode = 'display', onDraftSiteSelect
                 <div className="mt-2 flex flex-col gap-2">
                   {recentEvents.slice(0, 4).map(event => (
                     <div key={`${event.site}-${event.title}-${event.time}`} className="grid grid-cols-[44px_1fr] gap-2 text-[12px]">
-                      <span className="font-mono text-[var(--sc-text-muted)]">{new Date(event.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      <span className="font-mono text-[var(--sc-text-muted)]">{formatClockTime(event.time)}</span>
                       <span className="truncate text-[var(--sc-text)]">{event.site}: {event.title}</span>
                     </div>
                   ))}
@@ -394,7 +395,7 @@ export function AlertsBoard({ filters, slot }: WallViewProps) {
                 <p className="mt-1 truncate text-[13px] text-[var(--sc-text-muted)]">{alert.domain} · {alert.site}</p>
               </div>
               <div className="text-right font-mono text-[12px] text-[var(--sc-text-muted)]">
-                {new Date(alert.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {formatClockTime(alert.time)}
               </div>
             </GlassPanel>
           ))}
@@ -539,7 +540,7 @@ export function ActivityFeed({ filters, slot }: WallViewProps) {
         <div className="flex flex-col gap-4">
           {visible.map((event, index) => (
             <div key={`${event.site}-${event.title}-${index}-${tick}`} className="grid grid-cols-[150px_90px_1fr] items-center gap-5 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 p-5">
-              <p className="font-mono text-[12px] text-[var(--sc-text-muted)]">{new Date(event.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+              <p className="font-mono text-[12px] text-[var(--sc-text-muted)]">{formatClockTime(event.time)}</p>
               <span className="grid h-14 w-14 place-items-center rounded-full bg-[var(--sc-hover)] text-[var(--sc-primary)]">
                 <Activity className="h-7 w-7" />
               </span>
@@ -631,8 +632,9 @@ export function AwarenessBoard({ filters, slot }: WallViewProps) {
 }
 
 export function BlankWallView({ filters, slot }: WallViewProps) {
-  const [time, setTime] = useState(() => new Date());
+  const [time, setTime] = useState<Date | null>(null);
   useEffect(() => {
+    setTime(new Date());
     const id = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
@@ -643,7 +645,7 @@ export function BlankWallView({ filters, slot }: WallViewProps) {
         <Shield className="mx-auto h-28 w-28 text-[var(--sc-primary)]" strokeWidth={1.4} />
         <h1 className="mt-8 text-[38px] font-semibold text-[var(--sc-text-strong)]">Sentinel</h1>
         <p className="mt-5 font-mono text-[13px] tracking-[0.12em] text-[var(--sc-text-muted)]">
-          {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {time ? formatClockTime(time) : '--:--'}
         </p>
         <p className="mt-5 font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--sc-text-subtle)]">
           Slot {slot} · {formatScope(filters)} · DEMO DATA

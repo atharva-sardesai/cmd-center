@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ReactNode } from 'react';
 import type { DomainData, SiteRecord, StatusLevel } from '@/data/sites';
 import { LAYER_MAP } from '@/data/layerMap';
+import { formatClockTime, formatCount } from '@/lib/format';
 
 interface Props {
   site: SiteRecord | null;
@@ -317,10 +318,10 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
                 <TabsTrigger value="retention" className="text-[12px] font-medium uppercase tracking-[0.05em]">Retention</TabsTrigger>
               </TabsList>
               <TabsContent value="it" className="grid grid-cols-2 gap-2">
-                <AssetMetric label="Servers" value={site.domains.it_assets.servers.toLocaleString()} />
-                <AssetMetric label="Endpoints" value={site.domains.it_assets.endpoints.toLocaleString()} />
-                <AssetMetric label="Network" value={site.domains.it_assets.network.toLocaleString()} />
-                <AssetMetric label="Cloud" value={site.domains.it_assets.cloud.toLocaleString()} />
+                <AssetMetric label="Servers" value={formatCount(site.domains.it_assets.servers)} />
+                <AssetMetric label="Endpoints" value={formatCount(site.domains.it_assets.endpoints)} />
+                <AssetMetric label="Network" value={formatCount(site.domains.it_assets.network)} />
+                <AssetMetric label="Cloud" value={formatCount(site.domains.it_assets.cloud)} />
               </TabsContent>
               <TabsContent value="ot" className="grid grid-cols-3 gap-2">
                 <AssetMetric label="PLCs" value={site.domains.ot_assets.plcs} />
@@ -343,7 +344,7 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[14px] font-normal text-[var(--text-secondary)]">{activity.title}</div>
                     <div className="mt-1 text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">
-                      {activity.type} · {new Date(activity.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {activity.type} · {formatClockTime(activity.time)}
                     </div>
                   </div>
                 </div>
@@ -370,7 +371,7 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[14px] font-normal text-[var(--text-primary)]">{alert.title}</div>
                       <div className="mt-1 text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">
-                        {alert.severity} · {alert.type} · {new Date(alert.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {alert.severity} · {alert.type} · {formatClockTime(alert.time)}
                       </div>
                     </div>
                     <span
