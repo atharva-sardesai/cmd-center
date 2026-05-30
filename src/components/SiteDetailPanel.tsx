@@ -117,15 +117,7 @@ function AssetMetric({ label, value }: { label: string; value: string | number }
   );
 }
 
-export default function SiteDetailPanel({ site, onClose }: Props) {
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
-
-  if (!site) return null;
-
+function getSiteDetailData(site: SiteRecord) {
   const posture = site.domains.posture_index;
   const postureColor = STATUS_COLOR[posture.status];
   const domainItems = DOMAIN_ROWS.map((key) => ({
@@ -151,6 +143,146 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
   const alertChipColor = liveCritical > 0 ? STATUS_COLOR.CRITICAL : STATUS_COLOR.WATCH;
   const alertSummary = liveCritical > 0 ? `${liveCritical} critical` : `${liveHigh} high`;
 
+  return {
+    site,
+    posture,
+    postureColor,
+    domainItems,
+    attentionItems,
+    verdict,
+    liveAlerts,
+    alertChipColor,
+    alertSummary,
+  };
+}
+
+type SiteDetailData = ReturnType<typeof getSiteDetailData>;
+
+function SiteDetailHeader({ detail, onClose }: { detail: SiteDetailData; onClose?: () => void }) {
+  const { site, liveAlerts, alertChipColor, alertSummary } = detail;
+
+  return (
+    <div className="flex-shrink-0 border-b border-[var(--border-hairline)] px-6 py-6">
+      <div className="space-y-3">
+        <div className="flex items-start justify-between gap-4">
+          <h2 className="min-w-0 truncate text-[32px] font-medium leading-none text-[var(--text-primary)]">
+            {site.name}
+          </h2>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-[var(--text-tertiary)] transition-colors hover:bg-[var(--hover-accent)] hover:text-[var(--text-primary)]"
+              aria-label="Close site detail panel"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2 text-[14px] font-normal text-[var(--text-secondary)]">
+          <span>{site.businessUnit} · {site.region}</span>
+          <span className="rounded-md border border-[var(--border-hairline)] bg-white/[0.02] px-2 py-1 font-mono text-[12px] text-[var(--text-tertiary)] tabular-nums">
+            {site.lat.toFixed(4)}°, {site.lng.toFixed(4)}°
+          </span>
+        </div>
+        {liveAlerts.length > 0 && (
+          <div
+            className="inline-flex w-fit items-center gap-2 rounded-full border px-2.5 py-1 text-[12px] font-medium uppercase tracking-[0.05em]"
+            style={{ borderColor: alertChipColor, color: alertChipColor, background: `color-mix(in srgb, ${alertChipColor} 10%, transparent)` }}
+          >
+            <span>Live alerts</span>
+            <span className="font-mono tabular-nums">{liveAlerts.length}</span>
+            <span className="text-[var(--text-tertiary)]">{alertSummary}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SitePostureBlock({ detail }: { detail: SiteDetailData }) {
+  const { site, posture, postureColor, verdict } = detail;
+
+  return (
+    <section className="min-h-[25%] space-y-3 rounded-xl border border-[var(--border-hairline)] bg-white/[0.02] p-5">
+      <div className="flex items-end justify-between gap-4">
+        <div className="flex items-end gap-4">
+          <div
+            className="font-mono text-[80px] font-light leading-none tracking-[-0.05em] tabular-nums"
+            style={{ color: postureColor }}
+          >
+            {site.postureScore}
+          </div>
+          <div className="mb-4 flex items-center gap-2 text-[18px] font-medium" style={{ color: postureColor }}>
+            <TrendGlyph trend={posture.trend} />
+            <span className="font-mono tabular-nums">{posture.trend > 0 ? '+' : ''}{posture.trend}</span>
+          </div>
+        </div>
+        <div className="mb-4 text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">
+          Overall posture
+        </div>
+      </div>
+      <p className="text-[18px] font-medium text-[var(--text-primary)]">{verdict}</p>
+    </section>
+  );
+}
+
+function CriticalAttentionSection({ detail }: { detail: SiteDetailData }) {
+  return (
+    <Section title="Critical attention">
+      {detail.attentionItems.length > 0 ? (
+        <div className="space-y-2">
+          {detail.attentionItems.map(({ key, label, value, domain }) => {
+            const color = STATUS_COLOR[domain.status];
+            return (
+              <div
+                key={key}
+                className="flex min-h-[72px] items-center gap-4 rounded-xl border px-4 py-4"
+                style={{ borderColor: color, background: `color-mix(in srgb, ${color} 10%, transparent)` }}
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[14px] font-normal" style={{ color }}>{label}</div>
+                  <div className="mt-1 font-mono text-[14px] font-normal tabular-nums" style={{ color }}>{value}</div>
+                </div>
+                {statusPill(domain.status)}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-[var(--border-hairline)] bg-white/[0.02] px-4 py-4 text-[14px] font-normal text-[var(--text-secondary)]">
+          All domains healthy
+        </div>
+      )}
+    </Section>
+  );
+}
+
+export function SiteDetailSummary({ site, onClose }: { site: SiteRecord; onClose?: () => void }) {
+  const detail = getSiteDetailData(site);
+
+  return (
+    <GlassPanel className="flex h-full max-h-full flex-col overflow-hidden">
+      <SiteDetailHeader detail={detail} onClose={onClose} />
+      <div className="flex-1 space-y-6 overflow-y-auto p-5 styled-scrollbar">
+        <SitePostureBlock detail={detail} />
+        <CriticalAttentionSection detail={detail} />
+      </div>
+    </GlassPanel>
+  );
+}
+
+export default function SiteDetailPanel({ site, onClose }: Props) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  if (!site) return null;
+
+  const detail = getSiteDetailData(site);
+  const { domainItems, liveAlerts } = detail;
+
   return (
     <AnimatePresence>
       <motion.div
@@ -163,87 +295,11 @@ export default function SiteDetailPanel({ site, onClose }: Props) {
         style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: '100%' }}
       >
         <GlassPanel className="flex h-full max-h-full flex-col overflow-hidden">
-        <div className="flex-shrink-0 border-b border-[var(--border-hairline)] px-6 py-6">
-          <div className="space-y-3">
-            <div className="flex items-start justify-between gap-4">
-              <h2 className="min-w-0 truncate text-[32px] font-medium leading-none text-[var(--text-primary)]">
-                {site.name}
-              </h2>
-              <button
-                onClick={onClose}
-                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-[var(--text-tertiary)] transition-colors hover:bg-[var(--hover-accent)] hover:text-[var(--text-primary)]"
-                aria-label="Close site detail panel"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 text-[14px] font-normal text-[var(--text-secondary)]">
-              <span>{site.businessUnit} · {site.region}</span>
-              <span className="rounded-md border border-[var(--border-hairline)] bg-white/[0.02] px-2 py-1 font-mono text-[12px] text-[var(--text-tertiary)] tabular-nums">
-                {site.lat.toFixed(4)}°, {site.lng.toFixed(4)}°
-              </span>
-            </div>
-            {liveAlerts.length > 0 && (
-              <div
-                className="inline-flex w-fit items-center gap-2 rounded-full border px-2.5 py-1 text-[12px] font-medium uppercase tracking-[0.05em]"
-                style={{ borderColor: alertChipColor, color: alertChipColor, background: `color-mix(in srgb, ${alertChipColor} 10%, transparent)` }}
-              >
-                <span>Live alerts</span>
-                <span className="font-mono tabular-nums">{liveAlerts.length}</span>
-                <span className="text-[var(--text-tertiary)]">{alertSummary}</span>
-              </div>
-            )}
-          </div>
-        </div>
+        <SiteDetailHeader detail={detail} onClose={onClose} />
 
         <div className="flex-1 space-y-6 overflow-y-auto p-5 styled-scrollbar">
-          <section className="min-h-[25%] space-y-3 rounded-xl border border-[var(--border-hairline)] bg-white/[0.02] p-5">
-            <div className="flex items-end justify-between gap-4">
-              <div className="flex items-end gap-4">
-                <div
-                  className="font-mono text-[80px] font-light leading-none tracking-[-0.05em] tabular-nums"
-                  style={{ color: postureColor }}
-                >
-                  {site.postureScore}
-                </div>
-                <div className="mb-4 flex items-center gap-2 text-[18px] font-medium" style={{ color: postureColor }}>
-                  <TrendGlyph trend={posture.trend} />
-                  <span className="font-mono tabular-nums">{posture.trend > 0 ? '+' : ''}{posture.trend}</span>
-                </div>
-              </div>
-              <div className="mb-4 text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">
-                Overall posture
-              </div>
-            </div>
-            <p className="text-[18px] font-medium text-[var(--text-primary)]">{verdict}</p>
-          </section>
-
-          <Section title="Critical attention">
-            {attentionItems.length > 0 ? (
-              <div className="space-y-2">
-                {attentionItems.map(({ key, label, value, domain }) => {
-                  const color = STATUS_COLOR[domain.status];
-                  return (
-                    <div
-                      key={key}
-                      className="flex min-h-[72px] items-center gap-4 rounded-xl border px-4 py-4"
-                      style={{ borderColor: color, background: `color-mix(in srgb, ${color} 10%, transparent)` }}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-[14px] font-normal" style={{ color }}>{label}</div>
-                        <div className="mt-1 font-mono text-[14px] font-normal tabular-nums" style={{ color }}>{value}</div>
-                      </div>
-                      {statusPill(domain.status)}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="rounded-xl border border-[var(--border-hairline)] bg-white/[0.02] px-4 py-4 text-[14px] font-normal text-[var(--text-secondary)]">
-                All domains healthy
-              </div>
-            )}
-          </Section>
+          <SitePostureBlock detail={detail} />
+          <CriticalAttentionSection detail={detail} />
 
           <Section title="Full domain breakdown">
             <div className="grid grid-cols-2 gap-2">
