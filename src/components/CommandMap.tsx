@@ -18,6 +18,8 @@ interface CommandMapProps {
   flyToLocation?: { lat: number; lng: number; ts: number; zoom?: number } | null;
   projection?: 'mercator' | 'globe';
   mapStyle?: string;
+  markerScale?: number;
+  markerOpacity?: number;
 }
 
 function computeSolarTerminator(): [number, number][] {
@@ -78,6 +80,8 @@ function CommandMap({
   data, activeLayers, onEntityClick, onSiteClick, selectedSiteId, sitesData,
   onMouseCoords, onRightClick, onViewStateChange,
   flyToLocation, projection = 'globe', mapStyle = 'dark',
+  markerScale = 1,
+  markerOpacity = 0.7,
 }: CommandMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -339,7 +343,7 @@ function CommandMap({
         paint: {
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], ['*', ['get','markerRadius'], 1.15], ['get','markerRadius']],
           'circle-color': ['get','statusColor'],
-          'circle-opacity': 0.7,
+          'circle-opacity': markerOpacity,
           'circle-stroke-width': ['case', ['boolean', ['feature-state', 'hover'], false], 1.5, 1],
           'circle-stroke-color': ['get','statusColor'],
           'circle-stroke-opacity': 1,
@@ -763,14 +767,14 @@ function CommandMap({
               postureScore: s.postureScore,
               status: worstStatus,
               statusColor: STATUS_COLORS[worstStatus],
-              markerRadius: getMarkerRadius(activityVolume),
+              markerRadius: Math.max(4, getMarkerRadius(activityVolume) * markerScale),
               activityVolume,
               region: s.region,
             },
           };
         })
       : []);
-  }, [mapReady, sitesData, setGeo]);
+  }, [mapReady, sitesData, markerScale, setGeo]);
 
   // ── Selected site ring ──
   useEffect(() => {

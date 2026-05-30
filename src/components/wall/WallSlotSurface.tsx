@@ -17,6 +17,20 @@ function WallSlotSurfaceInner({ slot }: { slot: WallSlot }) {
 
   return (
     <main className="relative h-screen w-screen overflow-hidden bg-[radial-gradient(circle_at_50%_10%,rgba(0,213,232,0.08),transparent_34%),var(--sc-bg-0)] text-[var(--sc-text)]">
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            nextjs-portal,
+            [data-nextjs-toast],
+            [data-nextjs-dialog-overlay],
+            [data-nextjs-dialog],
+            [data-nextjs-errors],
+            [data-nextjs-terminal] {
+              display: none !important;
+            }
+          `,
+        }}
+      />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent_18%,rgba(0,0,0,0.34))]" />
 
       {view && filters ? (
@@ -35,15 +49,15 @@ function WallSlotSurfaceInner({ slot }: { slot: WallSlot }) {
         </section>
       )}
 
-      <div className="absolute bottom-7 left-8 flex items-center gap-3 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/35 px-4 py-3 font-mono text-[24px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">
+      <div className="absolute bottom-5 left-5 flex items-center gap-2 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/35 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">
         <span
-          className="h-3 w-3 rounded-full"
+          className="h-2 w-2 rounded-full"
           style={{ background: statusColor(connectionStatus) }}
         />
         {connectionStatus}
       </div>
 
-      <div className="absolute bottom-7 right-8 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/35 px-4 py-3 font-mono text-[28px] font-semibold text-[var(--sc-text-strong)]">
+      <div className="absolute bottom-5 right-5 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/35 px-3 py-2 font-mono text-[13px] font-semibold text-[var(--sc-text-strong)]">
         S{slot}
       </div>
     </main>
