@@ -13,7 +13,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { Activity, Bell, Cpu, MapPin, Shield, TrendingUp } from 'lucide-react';
+import { Activity, Bell, Cpu, MapPin, Server, Shield, TrendingUp, Users } from 'lucide-react';
 import CommandMap from '@/components/CommandMap';
 import SiteDetailPanel from '@/components/SiteDetailPanel';
 import { GlassPanel } from '@/components/ui/glass-panel';
@@ -131,48 +131,6 @@ function getRecentEvents(sites: SiteRecord[]) {
   return sites
     .flatMap(site => site.recentActivity.map(activity => ({ ...activity, site: site.name })))
     .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
-}
-
-function WallChrome({ title, kicker, filters, children }: WallViewProps & {
-  title: string;
-  kicker: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="absolute inset-0 flex flex-col gap-4 px-6 py-5 text-[var(--sc-text)]">
-      <header className="flex items-start justify-between gap-5">
-        <div>
-          <p className="font-mono text-[13px] uppercase tracking-[0.16em] text-[var(--sc-primary)]">{kicker}</p>
-          <h1 className="mt-1 text-[24px] font-semibold leading-none text-[var(--sc-text-strong)]">{title}</h1>
-        </div>
-        <div className="rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/35 px-3 py-2 text-right font-mono text-[12px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">
-          <div>{formatScope(filters)}</div>
-          <div className="mt-1 text-[var(--sc-primary)]">{filters.timeRange} · {filters.activeDomains.length} domains</div>
-        </div>
-      </header>
-      <div className="min-h-0 flex-1">{children}</div>
-      <div className="pointer-events-none absolute right-5 top-5 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--sc-text-subtle)]">
-        DEMO DATA
-      </div>
-    </section>
-  );
-}
-
-function StatCard({ label, value, sublabel, tone = 'primary' }: {
-  label: string;
-  value: string | number;
-  sublabel?: string;
-  tone?: WallTone;
-}) {
-  const color = toneColor(tone);
-
-  return (
-    <GlassPanel className="h-full p-4">
-      <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">{label}</p>
-      <p className="mt-2 text-[42px] font-semibold leading-none" style={{ color }}>{value}</p>
-      {sublabel && <p className="mt-2 text-[14px] text-[var(--sc-text)]">{sublabel}</p>}
-    </GlassPanel>
-  );
 }
 
 function WallViewFrame({ title, kicker, filters, slot, hero, children }: {
@@ -308,6 +266,31 @@ function RankedListRow({ rank, title, meta, value, status }: {
   );
 }
 
+function statusFromScore(score: number): StatusLevel {
+  return score >= 80 ? 'HEALTHY' : score >= 65 ? 'WATCH' : 'CRITICAL';
+}
+
+function toneFromScore(score: number): WallTone {
+  return score >= 80 ? 'ok' : score >= 65 ? 'watch' : 'critical';
+}
+
+function signedValue(value: number) {
+  return `${value >= 0 ? '+' : ''}${value}`;
+}
+
+function domainCards(sites: SiteRecord[]) {
+  return ALL_LAYERS.filter(layer => layer.key !== 'day_night').map(layer => {
+    const key = layer.key as DomainKey;
+    const value = avg(sites.map(site => site.domains[key].score));
+    return {
+      layer,
+      value,
+      status: statusFromScore(value),
+      trend: avg(sites.map(site => site.domains[key].trend)),
+    };
+  });
+}
+
 function trendPoints(filters: WallFilters) {
   const sites = getScopedSites(filters);
   const steps = filters.timeRange === '1h' ? 8 : filters.timeRange === '24h' ? 12 : filters.timeRange === '7d' ? 7 : 10;
@@ -373,8 +356,11 @@ export function MapWallView({ filters, slot, mode = 'display', onDraftSiteSelect
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="font-mono text-[12px] uppercase tracking-[0.16em] text-[var(--sc-primary)]">Slot {slot}</p>
-              <h1 className="mt-1 text-[26px] font-semibold text-[var(--sc-text-strong)]">Command Map</h1>
-              <p className="mt-1 text-[13px] text-[var(--sc-text-muted)]">{formatScope(filters)}</p>
+              <h1 className="mt-2 text-[26px] font-semibold leading-none text-[var(--sc-text-strong)]">Command Map</h1>
+              <p className="mt-2 text-[14px] font-semibold text-[var(--sc-text-strong)]">{formatScope(filters)}</p>
+              <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">
+                {filters.timeRange} · {(filters.activeDomains.length || ALL_LAYERS.length)} domains active
+              </p>
               <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--sc-text-subtle)]">DEMO DATA</p>
             </div>
             <MapPin className="h-6 w-6 text-[var(--sc-primary)]" />
@@ -524,33 +510,64 @@ export function AlertsBoard({ filters, slot }: WallViewProps) {
     site: site.name,
     domain: activity.type.toUpperCase(),
   }))).sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+  const critical = alerts.filter(alert => alert.severity === 'CRITICAL').length;
+  const high = alerts.filter(alert => alert.severity === 'HIGH').length;
+  const active = alerts.length;
 
   return (
-    <WallChrome title="Live Alerts" kicker={`Slot ${slot} · prioritized event queue`} filters={filters} slot={slot}>
+    <WallViewFrame
+      title="Live Alerts"
+      kicker="Prioritized event queue"
+      filters={filters}
+      slot={slot}
+      hero={(
+        <div className="grid grid-cols-[1fr_180px_180px] gap-5">
+          <WallHeroStat
+            label="Active alerts"
+            value={active}
+            detail="Recent security activity in the current wall scope, prioritized by severity and recency."
+            trend={`${critical} critical · ${high} high`}
+            tone={critical > 0 ? 'critical' : high > 0 ? 'watch' : 'ok'}
+            icon={<Bell className="h-8 w-8" />}
+          />
+          <WallKpiCard label="Critical" value={critical} detail="Requires attention" tone={critical > 0 ? 'critical' : 'ok'} />
+          <WallKpiCard label="High" value={high} detail="Elevated severity" tone={high > 0 ? 'watch' : 'neutral'} />
+        </div>
+      )}
+    >
       {alerts.length === 0 ? (
         <GlassPanel className="grid h-full place-items-center p-10 text-center">
           <Bell className="mx-auto h-20 w-20 text-[var(--sc-status-ok)]" />
-          <p className="mt-8 text-[52px] font-semibold text-[var(--sc-text-strong)]">No alerts in scope</p>
+          <p className="mt-8 text-[34px] font-semibold text-[var(--sc-text-strong)]">No alerts in scope</p>
+          <p className="mt-3 text-[15px] text-[var(--sc-text-muted)]">The selected enterprise or site scope has no recent alert rows.</p>
         </GlassPanel>
       ) : (
-        <div className="grid h-full grid-rows-[repeat(8,minmax(0,1fr))] gap-4">
-          {alerts.slice(0, 8).map((alert, index) => (
-            <GlassPanel key={`${alert.site}-${alert.title}-${index}`} className="grid grid-cols-[160px_1fr_190px] items-center gap-6 p-6">
-              <div className="font-mono text-[13px] uppercase tracking-[0.14em]" style={{ color: SEVERITY_COLOR[alert.severity] }}>
-                {alert.severity}
+        <GlassPanel className="h-full min-h-0 p-5">
+          <div className="grid grid-cols-[126px_1fr_160px_104px] border-b border-[var(--sc-border)] pb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">
+            <span>Severity</span>
+            <span>Description</span>
+            <span>Site</span>
+            <span className="text-right">Time</span>
+          </div>
+          <div className="mt-3 grid max-h-full grid-rows-[repeat(10,minmax(0,1fr))] gap-2 overflow-hidden">
+            {alerts.slice(0, 10).map((alert, index) => (
+              <div key={`${alert.site}-${alert.title}-${index}`} className="grid grid-cols-[126px_1fr_160px_104px] items-center gap-4 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-4 py-3">
+                <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em]" style={{ color: SEVERITY_COLOR[alert.severity] }}>
+                  <span className="h-2 w-2 rounded-full" style={{ background: SEVERITY_COLOR[alert.severity] }} />
+                  {alert.severity}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-[15px] font-semibold text-[var(--sc-text-strong)]">{alert.title}</p>
+                  <p className="mt-1 truncate font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">{alert.domain}</p>
+                </div>
+                <p className="truncate text-[13px] text-[var(--sc-text-muted)]">{alert.site}</p>
+                <p className="text-right font-mono text-[11px] text-[var(--sc-text-muted)]">{formatClockTime(alert.time)}</p>
               </div>
-              <div className="min-w-0">
-                <p className="truncate text-[17px] font-semibold text-[var(--sc-text-strong)]">{alert.title}</p>
-                <p className="mt-1 truncate text-[13px] text-[var(--sc-text-muted)]">{alert.domain} · {alert.site}</p>
-              </div>
-              <div className="text-right font-mono text-[12px] text-[var(--sc-text-muted)]">
-                {formatClockTime(alert.time)}
-              </div>
-            </GlassPanel>
-          ))}
-        </div>
+            ))}
+          </div>
+        </GlassPanel>
       )}
-    </WallChrome>
+    </WallViewFrame>
   );
 }
 
@@ -675,37 +692,91 @@ export function OTDeepDive({ filters, slot }: WallViewProps) {
 
 export function ITDeepDive({ filters, slot }: WallViewProps) {
   const sites = getScopedSites(filters);
-  const total = sumSites(sites, site => site.domains.it_assets.servers + site.domains.it_assets.endpoints + site.domains.it_assets.network + site.domains.it_assets.cloud);
-  const ranked = [...sites].sort((a, b) => b.domains.it_assets.endpoints - a.domains.it_assets.endpoints).slice(0, 6);
+  const servers = sumSites(sites, site => site.domains.it_assets.servers);
+  const endpoints = sumSites(sites, site => site.domains.it_assets.endpoints);
+  const network = sumSites(sites, site => site.domains.it_assets.network);
+  const cloud = sumSites(sites, site => site.domains.it_assets.cloud);
+  const total = servers + endpoints + network + cloud;
+  const averageScore = avg(sites.map(site => site.domains.it_assets.score));
+  const postureTone = toneFromScore(averageScore);
+  const ranked = [...sites]
+    .sort((a, b) => b.domains.it_assets.endpoints - a.domains.it_assets.endpoints)
+    .slice(0, 6);
+  const composition = [
+    { label: 'Endpoints', value: endpoints, tone: 'primary' as WallTone },
+    { label: 'Servers', value: servers, tone: 'neutral' as WallTone },
+    { label: 'Network', value: network, tone: 'watch' as WallTone },
+    { label: 'Cloud', value: cloud, tone: 'ok' as WallTone },
+  ];
 
   return (
-    <WallChrome title="IT Asset Registry" kicker={`Slot ${slot} · technology estate`} filters={filters} slot={slot}>
-      <div className="grid h-full grid-cols-[1.2fr_1fr] gap-7">
-        <GlassPanel className="p-7">
-          <p className="font-mono text-[13px] uppercase tracking-[0.16em] text-[var(--sc-text-muted)]">Endpoint Concentration</p>
-          <div className="mt-7 flex flex-col gap-4">
-            {ranked.map(site => (
-              <div key={site.id} className="grid grid-cols-[1fr_170px] items-center gap-5 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 p-5">
-                <div>
-                  <p className="text-[17px] font-semibold text-[var(--sc-text-strong)]">{site.name}</p>
-                  <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">{site.businessUnit}</p>
-                </div>
-                <p className="text-right font-mono text-[24px] font-semibold text-[var(--sc-primary)]">{site.domains.it_assets.endpoints}</p>
-              </div>
+    <WallViewFrame
+      title="IT Asset Registry"
+      kicker="Technology estate"
+      filters={filters}
+      slot={slot}
+      hero={(
+        <div className="grid grid-cols-[1fr_180px_180px] gap-5">
+          <WallHeroStat
+            label="Total IT assets"
+            value={total}
+            detail="Servers, endpoints, network devices, and cloud workloads in the selected scope."
+            trend={`${endpoints} endpoints`}
+            tone={postureTone}
+            icon={<Server className="h-8 w-8" />}
+          />
+          <WallKpiCard label="IT posture" value={averageScore} detail="Average index" tone={postureTone} />
+          <WallKpiCard label="Cloud" value={cloud} detail="Tracked workloads" tone="ok" />
+        </div>
+      )}
+    >
+      <div className="grid h-full grid-cols-[1.05fr_0.95fr] gap-5 pb-2">
+        <GlassPanel className="min-h-0 p-5">
+          <WallSectionHeading label="Endpoint concentration" detail="Largest endpoint estates in scope" />
+          <div className="mt-5 flex min-h-0 flex-col gap-3 overflow-auto pr-1 styled-scrollbar">
+            {ranked.map((site, index) => (
+              <RankedListRow
+                key={site.id}
+                rank={index + 1}
+                title={site.name}
+                meta={`${site.businessUnit} · ${site.domains.it_assets.servers} servers · ${site.domains.it_assets.cloud} cloud`}
+                value={site.domains.it_assets.endpoints}
+                status={site.domains.it_assets.status}
+              />
             ))}
           </div>
         </GlassPanel>
-        <div className="grid gap-7">
-          <StatCard label="Total IT Assets" value={total} sublabel="Servers, endpoints, network, cloud" />
-          <div className="grid grid-cols-2 gap-5">
-            <StatCard label="Servers" value={sumSites(sites, site => site.domains.it_assets.servers)} tone="neutral" />
-            <StatCard label="Cloud" value={sumSites(sites, site => site.domains.it_assets.cloud)} tone="ok" />
-            <StatCard label="Endpoints" value={sumSites(sites, site => site.domains.it_assets.endpoints)} />
-            <StatCard label="Network" value={sumSites(sites, site => site.domains.it_assets.network)} tone="watch" />
+
+        <div className="grid min-h-0 grid-rows-[auto_1fr] gap-5">
+          <div className="grid grid-cols-2 gap-4">
+            <WallKpiCard label="Servers" value={servers} detail={`${Math.round((servers / Math.max(total, 1)) * 100)}% of estate`} tone="neutral" />
+            <WallKpiCard label="Network" value={network} detail={`${Math.round((network / Math.max(total, 1)) * 100)}% of estate`} tone="watch" />
           </div>
+          <GlassPanel className="min-h-0 p-5">
+            <WallSectionHeading label="Estate mix" detail="Infrastructure composition" />
+            <div className="mt-5 grid gap-4">
+              {composition.map(item => (
+                <div key={item.label}>
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">{item.label}</p>
+                    <p className="font-mono text-[13px] text-[var(--sc-text-strong)]">{item.value}</p>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/5">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${Math.max(4, Math.round((item.value / Math.max(total, 1)) * 100))}%`,
+                        background: toneColor(item.tone),
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </GlassPanel>
         </div>
       </div>
-    </WallChrome>
+    </WallViewFrame>
   );
 }
 
@@ -715,43 +786,71 @@ export function PostureTrend({ filters, slot }: WallViewProps) {
   const current = avg(sites.map(site => site.postureScore));
   const prior = points.at(-2)?.posture ?? current;
   const delta = current - prior;
+  const status = statusFromScore(current);
 
   return (
-    <WallChrome title="Posture Trend" kicker={`Slot ${slot} · security index movement`} filters={filters} slot={slot}>
-      <div className="grid h-full grid-cols-[420px_1fr] gap-7">
-        <GlassPanel className="flex flex-col justify-between p-8">
-          <div>
-            <p className="font-mono text-[13px] uppercase tracking-[0.16em] text-[var(--sc-text-muted)]">Current Index</p>
-            <p className="mt-5 text-[56px] font-semibold leading-none text-[var(--sc-primary)]">{current}</p>
-            <p className="mt-6 text-[17px]" style={{ color: delta >= 0 ? 'var(--sc-status-ok)' : 'var(--sc-status-critical)' }}>
-              {delta >= 0 ? '+' : ''}{delta} vs prior
-            </p>
-          </div>
-          <div className="grid gap-3 font-mono text-[12px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">
-            <span>Posture</span>
-            <span>Exposure</span>
-            <span>Assets</span>
-            <span>People</span>
-          </div>
-        </GlassPanel>
-        <GlassPanel className="p-8">
-          <div className="h-full min-h-[420px] w-full overflow-hidden">
+    <WallViewFrame
+      title="Posture Trend"
+      kicker="Security index movement"
+      filters={filters}
+      slot={slot}
+      hero={(
+        <div className="grid grid-cols-[1fr_180px_180px] gap-5">
+          <WallHeroStat
+            label="Current posture"
+            value={current}
+            detail="Composite security posture index across active wall scope and selected time range."
+            trend={`${signedValue(delta)} vs prior`}
+            tone={toneFromScore(current)}
+            icon={<TrendingUp className="h-8 w-8" />}
+          />
+          <WallKpiCard label="Exposure" value={points.at(-1)?.exposure ?? current} detail="Latest line" tone={toneFromScore(points.at(-1)?.exposure ?? current)} />
+          <WallKpiCard label="Asset health" value={points.at(-1)?.assets ?? current} detail="IT + OT blend" tone={toneFromScore(points.at(-1)?.assets ?? current)} />
+        </div>
+      )}
+    >
+      <div className="grid h-full grid-cols-[1fr_260px] gap-5 pb-2">
+        <GlassPanel className="min-h-0 p-5">
+          <WallSectionHeading label="Posture movement" detail={`${filters.timeRange} trend by domain family`} />
+          <div className="mt-5 h-[calc(100%-58px)] min-h-[300px] w-full overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={points} margin={{ left: 4, right: 16, top: 12, bottom: 8 }}>
-              <CartesianGrid stroke="rgba(218,240,244,0.12)" vertical={false} />
-              <XAxis dataKey="label" stroke="var(--sc-text-muted)" tick={{ fontSize: 12 }} />
-              <YAxis stroke="var(--sc-text-muted)" domain={[40, 100]} tick={{ fontSize: 12 }} />
-              <RechartsTooltip contentStyle={{ background: '#081016', border: '1px solid var(--sc-border)', fontSize: 13 }} />
-              <Line type="monotone" dataKey="posture" stroke="var(--sc-primary)" strokeWidth={4} dot={false} />
-              <Line type="monotone" dataKey="exposure" stroke="var(--sc-status-critical)" strokeWidth={3} dot={false} />
-              <Line type="monotone" dataKey="assets" stroke="var(--sc-status-ok)" strokeWidth={3} dot={false} />
-              <Line type="monotone" dataKey="people" stroke="var(--sc-status-watch)" strokeWidth={3} dot={false} />
+              <LineChart data={points} margin={{ left: 0, right: 20, top: 14, bottom: 6 }}>
+                <CartesianGrid stroke="rgba(255,255,255,0.09)" vertical={false} />
+                <XAxis dataKey="label" stroke="var(--sc-text-muted)" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                <YAxis stroke="var(--sc-text-muted)" domain={[40, 100]} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={34} />
+                <RechartsTooltip contentStyle={{ background: '#081016', border: '1px solid var(--sc-border)', borderRadius: 8, fontSize: 12 }} />
+                <Line type="monotone" dataKey="posture" stroke="var(--sc-primary)" strokeWidth={4} dot={false} />
+                <Line type="monotone" dataKey="exposure" stroke="var(--sc-status-critical)" strokeWidth={2.5} dot={false} />
+                <Line type="monotone" dataKey="assets" stroke="var(--sc-status-ok)" strokeWidth={2.5} dot={false} />
+                <Line type="monotone" dataKey="people" stroke="var(--sc-status-watch)" strokeWidth={2.5} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </GlassPanel>
+        <GlassPanel className="p-5">
+          <WallSectionHeading label="Legend" detail="Readable wall lines" />
+          <div className="mt-5 grid gap-3">
+            {[
+              ['Posture', 'var(--sc-primary)'],
+              ['Exposure', 'var(--sc-status-critical)'],
+              ['Assets', 'var(--sc-status-ok)'],
+              ['People', 'var(--sc-status-watch)'],
+            ].map(([label, color]) => (
+              <div key={label} className="flex items-center justify-between rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-3 py-3">
+                <span className="flex items-center gap-2 text-[14px] text-[var(--sc-text-strong)]">
+                  <span className="h-2 w-7 rounded-full" style={{ background: color }} />
+                  {label}
+                </span>
+              </div>
+            ))}
+            <div className="mt-2 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 p-4">
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">Current status</p>
+              <div className="mt-3"><WallStatusPill status={status} /></div>
+            </div>
+          </div>
+        </GlassPanel>
       </div>
-    </WallChrome>
+    </WallViewFrame>
   );
 }
 
@@ -762,64 +861,109 @@ export function ActivityFeed({ filters, slot }: WallViewProps) {
     const id = setInterval(() => setTick(value => value + 1), 4500);
     return () => clearInterval(id);
   }, []);
-  const events = scoped.flatMap(site => site.recentActivity.map(activity => ({ ...activity, site: site.name })));
-  const visible = Array.from({ length: Math.min(10, events.length) }, (_, index) => events[(index + tick) % events.length]).filter(Boolean);
+  const events = getRecentEvents(scoped);
+  const visible = Array.from({ length: Math.min(11, events.length) }, (_, index) => events[(index + tick) % events.length]).filter(Boolean);
+  const critical = events.filter(event => event.severity === 'CRITICAL').length;
 
   return (
-    <WallChrome title="Activity Feed" kicker={`Slot ${slot} · live operational timeline`} filters={filters} slot={slot}>
-      <GlassPanel className="h-full overflow-hidden p-7">
-        <div className="flex flex-col gap-4">
+    <WallViewFrame
+      title="Activity Feed"
+      kicker="Live operational timeline"
+      filters={filters}
+      slot={slot}
+      hero={(
+        <div className="grid grid-cols-[1fr_180px_180px] gap-5">
+          <WallHeroStat
+            label="Recent events"
+            value={events.length}
+            detail="Rolling activity timeline across the selected site or enterprise scope."
+            trend="Rotates every 4.5s"
+            tone={critical > 0 ? 'critical' : 'primary'}
+            icon={<Activity className="h-8 w-8" />}
+          />
+          <WallKpiCard label="Critical" value={critical} detail="In current feed" tone={critical > 0 ? 'critical' : 'ok'} />
+          <WallKpiCard label="Visible rows" value={visible.length} detail="On this screen" tone="neutral" />
+        </div>
+      )}
+    >
+      <GlassPanel className="h-full min-h-0 overflow-hidden p-5">
+        <div className="flex h-full min-h-0 flex-col gap-2">
           {visible.map((event, index) => (
-            <div key={`${event.site}-${event.title}-${index}-${tick}`} className="grid grid-cols-[150px_90px_1fr] items-center gap-5 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 p-5">
-              <p className="font-mono text-[12px] text-[var(--sc-text-muted)]">{formatClockTime(event.time)}</p>
-              <span className="grid h-14 w-14 place-items-center rounded-full bg-[var(--sc-hover)] text-[var(--sc-primary)]">
-                <Activity className="h-7 w-7" />
+            <div
+              key={`${event.site}-${event.title}-${index}-${tick}`}
+              className="grid grid-cols-[90px_54px_1fr_150px] items-center gap-4 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-4 py-3 transition-opacity duration-500"
+              style={{ opacity: 1 - index * 0.035 }}
+            >
+              <p className="font-mono text-[11px] text-[var(--sc-text-muted)]">{formatClockTime(event.time)}</p>
+              <span className="grid h-10 w-10 place-items-center rounded-[var(--sc-radius)] bg-[var(--sc-hover)] text-[var(--sc-primary)]">
+                <Activity className="h-5 w-5" />
               </span>
               <div className="min-w-0">
-                <p className="truncate text-[17px] font-semibold text-[var(--sc-text-strong)]">{event.title}</p>
-                <p className="mt-1 truncate font-mono text-[11px] uppercase tracking-[0.14em]" style={{ color: SEVERITY_COLOR[event.severity] }}>
-                  {event.type} · {event.site} · {event.severity}
+                <p className="truncate text-[15px] font-semibold text-[var(--sc-text-strong)]">{event.title}</p>
+                <p className="mt-1 truncate font-mono text-[10px] uppercase tracking-[0.14em]" style={{ color: SEVERITY_COLOR[event.severity] }}>
+                  {event.type} · {event.severity}
                 </p>
               </div>
+              <p className="truncate text-right text-[13px] text-[var(--sc-text-muted)]">{event.site}</p>
             </div>
           ))}
         </div>
       </GlassPanel>
-    </WallChrome>
+    </WallViewFrame>
   );
 }
 
 export function KpiGrid({ filters, slot }: WallViewProps) {
   const sites = getScopedSites(filters);
-  const cards = ALL_LAYERS.map(layer => {
-    const key = layer.key as DomainKey;
-    const value = key in sites[0].domains
-      ? avg(sites.map(site => site.domains[key].score))
-      : 100;
-    const status = value >= 80 ? 'HEALTHY' : value >= 65 ? 'WATCH' : 'CRITICAL';
-    return { layer, value, status: status as StatusLevel };
-  });
+  const cards = domainCards(sites);
+  const average = avg(cards.map(card => card.value));
+  const watchCount = cards.filter(card => card.status !== 'HEALTHY').length;
 
   return (
-    <WallChrome title="Domain KPI Grid" kicker={`Slot ${slot} · twelve-domain overview`} filters={filters} slot={slot}>
-      <div className="grid h-full grid-cols-4 grid-rows-3 gap-5">
-        {cards.map(({ layer, value, status }) => (
-          <GlassPanel key={layer.key} className="flex flex-col justify-between p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--sc-text-muted)]">{layer.group}</p>
-                <h2 className="mt-2 text-[17px] font-semibold leading-tight text-[var(--sc-text-strong)]">{layer.label}</h2>
+    <WallViewFrame
+      title="Domain KPI Grid"
+      kicker="Twelve-domain overview"
+      filters={filters}
+      slot={slot}
+      hero={(
+        <div className="grid grid-cols-[1fr_180px_180px] gap-5">
+          <WallHeroStat
+            label="Domain posture"
+            value={average}
+            detail="Average score across the twelve security domains in the current scope."
+            trend={`${watchCount} domains to watch`}
+            tone={toneFromScore(average)}
+            icon={<Shield className="h-8 w-8" />}
+          />
+          <WallKpiCard label="Domains" value={cards.length} detail="Tracked functions" tone="neutral" />
+          <WallKpiCard label="Watchlist" value={watchCount} detail="Watch or critical" tone={watchCount > 3 ? 'critical' : watchCount > 0 ? 'watch' : 'ok'} />
+        </div>
+      )}
+    >
+      <div className="grid h-full grid-cols-4 grid-rows-3 gap-4 pb-2">
+        {cards.map(({ layer, value, status, trend }) => (
+          <GlassPanel key={layer.key} className="flex min-h-0 flex-col justify-between p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">{layer.group}</p>
+                <h2 className="mt-2 line-clamp-2 text-[15px] font-semibold leading-tight text-[var(--sc-text-strong)]">{layer.label}</h2>
               </div>
-              <layer.Icon className="h-9 w-9 text-[var(--sc-primary)]" />
+              <layer.Icon className="h-7 w-7 shrink-0 text-[var(--sc-primary)]" />
             </div>
-            <div className="flex items-end justify-between">
-              <p className="text-[36px] font-semibold leading-none" style={{ color: STATUS_COLOR[status] }}>{value}</p>
-              <p className="font-mono text-[11px] uppercase tracking-[0.14em]" style={{ color: STATUS_COLOR[status] }}>{status}</p>
+            <div className="mt-4">
+              <div className="flex items-end justify-between gap-3">
+                <p className="font-mono text-[34px] font-semibold leading-none" style={{ color: STATUS_COLOR[status] }}>{value}</p>
+                <WallStatusPill status={status} />
+              </div>
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/5">
+                <div className="h-full rounded-full" style={{ width: `${value}%`, background: STATUS_COLOR[status] }} />
+              </div>
+              <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">{signedValue(trend)} trend</p>
             </div>
           </GlassPanel>
         ))}
       </div>
-    </WallChrome>
+    </WallViewFrame>
   );
 }
 
@@ -834,31 +978,62 @@ export function AwarenessBoard({ filters, slot }: WallViewProps) {
   const byUnit = Array.from(new Map(sites.map(site => [site.businessUnit, sites.filter(item => item.businessUnit === site.businessUnit)]))).map(([unit, unitSites]) => ({
     unit,
     score: avg(unitSites.map(site => site.domains.awareness.completion_pct)),
+    clickRate: avg(unitSites.map(site => site.domains.sim_campaigns.click_rate)),
   })).slice(0, 7);
   const chartData = byUnit.map(item => ({ name: item.unit, score: item.score }));
 
   return (
-    <WallChrome title="Awareness Board" kicker={`Slot ${slot} · people and campaigns`} filters={filters} slot={slot}>
-      <div className="grid h-full grid-cols-[430px_1fr] gap-7">
-        <div className="grid gap-7">
-          <StatCard label="Completion" value={`${completion}%`} sublabel={`${trained} of ${total} trained`} tone={completion >= 85 ? 'ok' : 'watch'} />
-          <StatCard label="Sim Click Rate" value={`${clickRate}%`} sublabel={`${clicked} clicks from ${campaigns} sends`} tone={clickRate <= 5 ? 'ok' : clickRate <= 10 ? 'watch' : 'critical'} />
+    <WallViewFrame
+      title="Awareness Board"
+      kicker="People and campaigns"
+      filters={filters}
+      slot={slot}
+      hero={(
+        <div className="grid grid-cols-[1fr_180px_180px] gap-5">
+          <WallHeroStat
+            label="Awareness completion"
+            value={`${completion}%`}
+            detail={`${trained} of ${total} assigned staff have completed awareness activities in scope.`}
+            trend={`${clickRate}% campaign click rate`}
+            tone={completion >= 85 ? 'ok' : completion >= 70 ? 'watch' : 'critical'}
+            icon={<Users className="h-8 w-8" />}
+          />
+          <WallKpiCard label="Campaign sends" value={campaigns} detail={`${clicked} clicked`} tone={clickRate <= 5 ? 'ok' : clickRate <= 10 ? 'watch' : 'critical'} />
+          <WallKpiCard label="Click rate" value={`${clickRate}%`} detail="Simulated campaigns" tone={clickRate <= 5 ? 'ok' : clickRate <= 10 ? 'watch' : 'critical'} />
         </div>
-        <GlassPanel className="p-8">
-          <p className="font-mono text-[13px] uppercase tracking-[0.16em] text-[var(--sc-text-muted)]">Business Unit Completion</p>
-          <div className="mt-8 h-[78%] min-h-[420px] w-full overflow-hidden">
+      )}
+    >
+      <div className="grid h-full grid-cols-[1fr_1fr] gap-5 pb-2">
+        <GlassPanel className="min-h-0 p-5">
+          <WallSectionHeading label="Business unit completion" detail="Average awareness completion by unit" />
+          <div className="mt-5 h-[calc(100%-58px)] min-h-[300px] w-full overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ left: 4, right: 16, top: 12, bottom: 8 }}>
-              <CartesianGrid stroke="rgba(218,240,244,0.12)" vertical={false} />
-              <XAxis dataKey="name" stroke="var(--sc-text-muted)" tick={{ fontSize: 12 }} />
-              <YAxis stroke="var(--sc-text-muted)" domain={[50, 100]} tick={{ fontSize: 12 }} />
-              <Area type="monotone" dataKey="score" stroke="var(--sc-primary)" fill="rgba(0,213,232,0.18)" strokeWidth={4} />
+              <AreaChart data={chartData} margin={{ left: 0, right: 18, top: 14, bottom: 6 }}>
+                <CartesianGrid stroke="rgba(255,255,255,0.09)" vertical={false} />
+                <XAxis dataKey="name" stroke="var(--sc-text-muted)" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                <YAxis stroke="var(--sc-text-muted)" domain={[50, 100]} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={34} />
+                <Area type="monotone" dataKey="score" stroke="var(--sc-primary)" fill="rgba(34,211,238,0.16)" strokeWidth={3} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </GlassPanel>
+        <GlassPanel className="min-h-0 p-5">
+          <WallSectionHeading label="Campaign watchlist" detail="Completion and simulated-campaign risk by unit" />
+          <div className="mt-5 flex min-h-0 flex-col gap-3 overflow-auto pr-1 styled-scrollbar">
+            {byUnit.map((unit, index) => (
+              <RankedListRow
+                key={unit.unit}
+                rank={index + 1}
+                title={unit.unit}
+                meta={`${unit.score}% completion · ${unit.clickRate}% click rate`}
+                value={`${unit.score}%`}
+                status={statusFromScore(unit.score)}
+              />
+            ))}
+          </div>
+        </GlassPanel>
       </div>
-    </WallChrome>
+    </WallViewFrame>
   );
 }
 
@@ -871,17 +1046,18 @@ export function BlankWallView({ filters, slot }: WallViewProps) {
   }, []);
 
   return (
-    <section className="absolute inset-0 grid place-items-center bg-[var(--sc-bg-0)] text-center text-[var(--sc-text)]">
-      <div>
-        <Shield className="mx-auto h-28 w-28 text-[var(--sc-primary)]" strokeWidth={1.4} />
-        <h1 className="mt-8 text-[38px] font-semibold text-[var(--sc-text-strong)]">Sentinel</h1>
-        <p className="mt-5 font-mono text-[13px] tracking-[0.12em] text-[var(--sc-text-muted)]">
+    <section className="absolute inset-0 grid place-items-center overflow-hidden bg-[radial-gradient(circle_at_50%_35%,rgba(34,211,238,0.08),transparent_32%),var(--sc-bg-0)] px-6 py-5 text-center text-[var(--sc-text)]">
+      <GlassPanel className="w-[420px] p-8">
+        <Shield className="mx-auto h-20 w-20 text-[var(--sc-primary)]" strokeWidth={1.4} />
+        <h1 className="mt-6 text-[32px] font-semibold text-[var(--sc-text-strong)]">Sentinel</h1>
+        <p className="mt-4 font-mono text-[22px] tracking-[0.08em] text-[var(--sc-primary)]">
           {time ? formatClockTime(time) : '--:--'}
         </p>
-        <p className="mt-5 font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--sc-text-subtle)]">
-          Slot {slot} · {formatScope(filters)} · DEMO DATA
+        <p className="mt-5 font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--sc-text-muted)]">
+          Slot {slot} · {formatScope(filters)}
         </p>
-      </div>
+        <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--sc-text-subtle)]">DEMO DATA</p>
+      </GlassPanel>
     </section>
   );
 }
