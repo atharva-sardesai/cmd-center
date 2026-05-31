@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Download,
   LayoutGrid,
@@ -151,6 +151,8 @@ function ControlSurfaceInner() {
   const [siteQuery, setSiteQuery] = useState('');
   const [draftFilters, setDraftFilters] = useState<WallFilters | null>(null);
   const [exploreView, setExploreView] = useState<ViewId>('map');
+  const [filterTab, setFilterTab] = useState('site');
+  const filtersCardRef = useRef<HTMLDivElement>(null);
 
   const liveFilters = state?.filters ?? {
     selectedSiteId: null,
@@ -221,6 +223,11 @@ function ControlSurfaceInner() {
     });
   }
 
+  function openDraftFilters() {
+    setFilterTab('site');
+    filtersCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   return (
     <main className="min-h-screen bg-[var(--sc-bg-0)] px-5 py-5 text-[var(--sc-text)]">
       <section className="mx-auto flex max-w-[1800px] flex-col gap-5">
@@ -270,7 +277,14 @@ function ControlSurfaceInner() {
                   {draftInSync ? 'In sync with wall' : 'Private draft only'}
                 </p>
               </div>
-              <SlidersHorizontal className="h-5 w-5 text-[var(--sc-primary)]" />
+              <button
+                type="button"
+                onClick={openDraftFilters}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--sc-radius)] border border-[var(--sc-border)] text-[var(--sc-primary)] transition-colors hover:bg-[var(--sc-hover)]"
+                aria-label="Open draft filter controls"
+              >
+                <SlidersHorizontal className="h-5 w-5" />
+              </button>
             </CardContent>
           </Card>
           <Button type="button" className="h-full min-h-20 justify-center" onClick={() => { void pushDraftToWall(); }} disabled={draftInSync}>
@@ -307,6 +321,7 @@ function ControlSurfaceInner() {
               slot="1"
               mode="control"
               onDraftSiteSelect={site => updateDraft({ selectedSiteId: site.id })}
+              onDraftSiteClear={() => updateDraft({ selectedSiteId: null })}
             />
           </CardContent>
         </Card>
@@ -356,7 +371,7 @@ function ControlSurfaceInner() {
           </Card>
 
           <div className="flex flex-col gap-5">
-            <Card className="border-[var(--sc-border)] bg-[var(--sc-surface-solid)]">
+            <Card ref={filtersCardRef} className="border-[var(--sc-border)] bg-[var(--sc-surface-solid)]">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-[var(--sc-text-strong)]">
                   <SlidersHorizontal className="h-5 w-5 text-[var(--sc-primary)]" />
@@ -365,7 +380,7 @@ function ControlSurfaceInner() {
                 <CardDescription>Draft filters are private until Push to wall.</CardDescription>
               </CardHeader>
               <CardContent>
-                <Tabs defaultValue="site" className="w-full">
+                <Tabs value={filterTab} onValueChange={setFilterTab} className="w-full">
                   <TabsList className="grid w-full grid-cols-3 bg-[var(--sc-bg-1)]">
                     <TabsTrigger value="site">Site</TabsTrigger>
                     <TabsTrigger value="time">Time</TabsTrigger>

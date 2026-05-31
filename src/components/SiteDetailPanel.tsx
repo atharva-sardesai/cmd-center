@@ -258,20 +258,6 @@ function CriticalAttentionSection({ detail }: { detail: SiteDetailData }) {
   );
 }
 
-export function SiteDetailSummary({ site, onClose }: { site: SiteRecord; onClose?: () => void }) {
-  const detail = getSiteDetailData(site);
-
-  return (
-    <GlassPanel className="flex h-full max-h-full flex-col overflow-hidden">
-      <SiteDetailHeader detail={detail} onClose={onClose} />
-      <div className="flex-1 space-y-6 overflow-y-auto p-5 styled-scrollbar">
-        <SitePostureBlock detail={detail} />
-        <CriticalAttentionSection detail={detail} />
-      </div>
-    </GlassPanel>
-  );
-}
-
 export default function SiteDetailPanel({ site, onClose }: Props) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };

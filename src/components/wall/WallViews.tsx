@@ -15,7 +15,7 @@ import {
 } from 'recharts';
 import { Activity, Bell, MapPin, Shield } from 'lucide-react';
 import CommandMap from '@/components/CommandMap';
-import { SiteDetailSummary } from '@/components/SiteDetailPanel';
+import SiteDetailPanel from '@/components/SiteDetailPanel';
 import { GlassPanel } from '@/components/ui/glass-panel';
 import { ALL_LAYERS } from '@/data/layerMap';
 import { MASTER_SITES, SITE_BY_ID, type SevLevel, type SiteRecord, type StatusLevel } from '@/data/sites';
@@ -27,6 +27,7 @@ type WallViewProps = {
   slot: WallSlot;
   mode?: 'display' | 'control';
   onDraftSiteSelect?: (site: SiteRecord) => void;
+  onDraftSiteClear?: () => void;
 };
 
 type MapBoundaryProps = {
@@ -178,7 +179,7 @@ function trendPoints(filters: WallFilters) {
   });
 }
 
-export function MapWallView({ filters, slot, mode = 'display', onDraftSiteSelect }: WallViewProps) {
+export function MapWallView({ filters, slot, mode = 'display', onDraftSiteSelect, onDraftSiteClear }: WallViewProps) {
   const selected = filters.selectedSiteId ? SITE_BY_ID.get(filters.selectedSiteId) : null;
   const scopedSites = getScopedSites(filters);
   const statusCounts = getStatusCounts(scopedSites);
@@ -287,11 +288,14 @@ export function MapWallView({ filters, slot, mode = 'display', onDraftSiteSelect
         )}
       </div>
       {selected && (
-        <div className="pointer-events-auto absolute bottom-5 right-5 top-5 w-[420px]">
-          <SiteDetailSummary site={selected} />
+        <div className="pointer-events-auto absolute bottom-5 right-5 top-5 w-80">
+          <SiteDetailPanel
+            site={selected}
+            onClose={mode === 'control' ? (onDraftSiteClear ?? (() => undefined)) : (() => undefined)}
+          />
         </div>
       )}
-      <div className="pointer-events-none absolute bottom-5 left-[345px] right-[345px] grid grid-cols-4 gap-3">
+      <div className={`pointer-events-none absolute bottom-5 left-[345px] grid grid-cols-4 gap-3 ${selected ? 'right-[365px]' : 'right-[345px]'}`}>
         <MiniMetric label="Healthy" value={statusCounts.HEALTHY} tone="ok" />
         <MiniMetric label="Watch" value={statusCounts.WATCH} tone="watch" />
         <MiniMetric label="Critical" value={statusCounts.CRITICAL} tone="critical" />

@@ -14,6 +14,7 @@ type ViewRendererProps = {
   suppressTransition?: boolean;
   mode?: 'display' | 'preview' | 'control';
   onDraftSiteSelect?: (site: SiteRecord) => void;
+  onDraftSiteClear?: () => void;
 };
 
 export const WALL_VIEW_META: Record<ViewId, {
@@ -32,7 +33,7 @@ export const WALL_VIEW_META: Record<ViewId, {
   blank: { label: 'Blank', kicker: 'Idle wall slot', Icon: Shield },
 };
 
-export function ViewRenderer({ view, filters, slot, suppressTransition = false, mode = 'display', onDraftSiteSelect }: ViewRendererProps) {
+export function ViewRenderer({ view, filters, slot, suppressTransition = false, mode = 'display', onDraftSiteSelect, onDraftSiteClear }: ViewRendererProps) {
   const meta = WALL_VIEW_META[view];
   const Icon = meta.Icon;
   const WallView = WALL_VIEW_COMPONENTS[view];
@@ -59,7 +60,13 @@ export function ViewRenderer({ view, filters, slot, suppressTransition = false, 
   if (mode === 'control') {
     return (
       <div className="relative h-[72vh] min-h-[560px] overflow-hidden rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-[var(--sc-bg-1)]">
-        <WallView filters={filters} slot={slot} mode="control" onDraftSiteSelect={onDraftSiteSelect} />
+        <WallView
+          filters={filters}
+          slot={slot}
+          mode="control"
+          onDraftSiteSelect={onDraftSiteSelect}
+          onDraftSiteClear={onDraftSiteClear}
+        />
       </div>
     );
   }
