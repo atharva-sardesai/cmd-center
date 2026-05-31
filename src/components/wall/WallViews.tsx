@@ -223,7 +223,7 @@ export function MapWallView({ filters, slot, mode = 'display', onDraftSiteSelect
           onSiteClick={mode === 'control' ? onDraftSiteSelect : undefined}
         />
       </MapErrorBoundary>
-      <div className={`pointer-events-none absolute left-5 right-5 top-5 grid gap-4 ${selected ? 'grid-cols-[320px_1fr]' : 'grid-cols-[320px_1fr_320px]'}`}>
+      <div className={`pointer-events-none absolute left-5 right-5 top-5 z-20 grid gap-4 ${selected ? 'grid-cols-[320px_1fr]' : 'grid-cols-[320px_1fr_320px]'}`}>
         <GlassPanel className="pointer-events-auto max-h-[calc(100vh-40px)] overflow-hidden p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -288,14 +288,14 @@ export function MapWallView({ filters, slot, mode = 'display', onDraftSiteSelect
         )}
       </div>
       {selected && (
-        <div className="pointer-events-auto absolute bottom-5 right-5 top-5 w-80">
+        <div className="pointer-events-auto absolute bottom-5 right-5 top-5 z-40 w-80">
           <SiteDetailPanel
             site={selected}
             onClose={mode === 'control' ? (onDraftSiteClear ?? (() => undefined)) : (() => undefined)}
           />
         </div>
       )}
-      <div className={`pointer-events-none absolute bottom-5 left-[345px] grid grid-cols-4 gap-3 ${selected ? 'right-[365px]' : 'right-[345px]'}`}>
+      <div className={`pointer-events-none absolute bottom-5 left-[345px] z-20 grid grid-cols-4 gap-3 ${selected ? 'right-[365px]' : 'right-[345px]'}`}>
         <MiniMetric label="Healthy" value={statusCounts.HEALTHY} tone="ok" />
         <MiniMetric label="Watch" value={statusCounts.WATCH} tone="watch" />
         <MiniMetric label="Critical" value={statusCounts.CRITICAL} tone="critical" />

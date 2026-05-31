@@ -229,7 +229,7 @@ function ControlSurfaceInner() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--sc-bg-0)] px-5 py-5 text-[var(--sc-text)]">
+    <main className="h-screen overflow-y-auto bg-[var(--sc-bg-0)] px-5 py-5 text-[var(--sc-text)] styled-scrollbar">
       <section className="mx-auto flex max-w-[1800px] flex-col gap-5">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div>
