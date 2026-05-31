@@ -179,11 +179,18 @@ function WallHeroStat({ label, value, detail, trend, tone = 'primary', icon }: {
   const color = toneColor(tone);
 
   return (
-    <GlassPanel className="grid h-[142px] grid-cols-[1fr_auto] items-center gap-5 p-5">
+    <GlassPanel className="h-[128px] p-5">
       <div className="min-w-0">
-        <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--sc-text-muted)]">{label}</p>
+        <div className="flex items-center gap-3">
+          {icon && (
+            <span className="grid h-8 w-8 place-items-center rounded-[var(--sc-radius)] bg-[var(--sc-hover)] text-[var(--sc-primary)]">
+              {icon}
+            </span>
+          )}
+          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--sc-text-muted)]">{label}</p>
+        </div>
         <div className="mt-3 flex items-end gap-4">
-          <p className="font-mono text-[64px] font-semibold leading-[0.86]" style={{ color }}>{value}</p>
+          <p className="font-mono text-[56px] font-semibold leading-[0.86]" style={{ color: tone === 'primary' ? 'var(--sc-text-strong)' : color }}>{value}</p>
           {trend && (
             <p className="mb-1 inline-flex items-center gap-2 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/25 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">
               <TrendingUp className="h-3.5 w-3.5 text-[var(--sc-primary)]" />
@@ -191,13 +198,8 @@ function WallHeroStat({ label, value, detail, trend, tone = 'primary', icon }: {
             </p>
           )}
         </div>
-        <p className="mt-3 text-[14px] leading-snug text-[var(--sc-text-muted)]">{detail}</p>
+        <p className="mt-2 text-[13px] leading-snug text-[var(--sc-text-muted)]">{detail}</p>
       </div>
-      {icon && (
-        <div className="grid h-16 w-16 place-items-center rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-[var(--sc-hover)]" style={{ color }}>
-          {icon}
-        </div>
-      )}
     </GlassPanel>
   );
 }
@@ -211,11 +213,14 @@ function WallKpiCard({ label, value, detail, tone = 'primary' }: {
   const color = toneColor(tone);
 
   return (
-    <GlassPanel className="flex h-full min-h-[112px] flex-col justify-between p-4">
+    <GlassPanel className="flex h-full min-h-[96px] flex-col justify-between p-4">
       <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">{label}</p>
       <div>
-        <p className="font-mono text-[34px] font-semibold leading-none" style={{ color }}>{value}</p>
+        <p className="font-mono text-[30px] font-semibold leading-none" style={{ color: tone === 'primary' ? 'var(--sc-text-strong)' : color }}>{value}</p>
         {detail && <p className="mt-2 text-[13px] leading-snug text-[var(--sc-text-muted)]">{detail}</p>}
+        <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/5">
+          <div className="h-full w-2/3 rounded-full" style={{ background: tone === 'primary' ? 'var(--sc-primary)' : color }} />
+        </div>
       </div>
     </GlassPanel>
   );
@@ -289,6 +294,11 @@ function domainCards(sites: SiteRecord[]) {
       trend: avg(sites.map(site => site.domains[key].trend)),
     };
   });
+}
+
+function repeatedRows<T>(items: T[], count: number): T[] {
+  if (items.length === 0) return [];
+  return Array.from({ length: count }, (_, index) => items[index % items.length]);
 }
 
 function trendPoints(filters: WallFilters) {
@@ -513,6 +523,15 @@ export function AlertsBoard({ filters, slot }: WallViewProps) {
   const critical = alerts.filter(alert => alert.severity === 'CRITICAL').length;
   const high = alerts.filter(alert => alert.severity === 'HIGH').length;
   const active = alerts.length;
+  const alertRows = repeatedRows(alerts, alerts.length >= 10 ? Math.min(14, alerts.length) : 10);
+  const bySeverity = (['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] as SevLevel[]).map(severity => ({
+    label: severity,
+    value: alerts.filter(alert => alert.severity === severity).length,
+    color: SEVERITY_COLOR[severity],
+  }));
+  const byDomain = Array.from(new Map(alerts.map(alert => [alert.domain, alerts.filter(item => item.domain === alert.domain).length])))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
 
   return (
     <WallViewFrame
@@ -527,7 +546,7 @@ export function AlertsBoard({ filters, slot }: WallViewProps) {
             value={active}
             detail="Recent security activity in the current wall scope, prioritized by severity and recency."
             trend={`${critical} critical · ${high} high`}
-            tone={critical > 0 ? 'critical' : high > 0 ? 'watch' : 'ok'}
+            tone="primary"
             icon={<Bell className="h-8 w-8" />}
           />
           <WallKpiCard label="Critical" value={critical} detail="Requires attention" tone={critical > 0 ? 'critical' : 'ok'} />
@@ -542,30 +561,61 @@ export function AlertsBoard({ filters, slot }: WallViewProps) {
           <p className="mt-3 text-[15px] text-[var(--sc-text-muted)]">The selected enterprise or site scope has no recent alert rows.</p>
         </GlassPanel>
       ) : (
-        <GlassPanel className="h-full min-h-0 p-5">
-          <div className="grid grid-cols-[126px_1fr_160px_104px] border-b border-[var(--sc-border)] pb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">
-            <span>Severity</span>
-            <span>Description</span>
-            <span>Site</span>
-            <span className="text-right">Time</span>
-          </div>
-          <div className="mt-3 grid max-h-full grid-rows-[repeat(10,minmax(0,1fr))] gap-2 overflow-hidden">
-            {alerts.slice(0, 10).map((alert, index) => (
-              <div key={`${alert.site}-${alert.title}-${index}`} className="grid grid-cols-[126px_1fr_160px_104px] items-center gap-4 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-4 py-3">
-                <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em]" style={{ color: SEVERITY_COLOR[alert.severity] }}>
-                  <span className="h-2 w-2 rounded-full" style={{ background: SEVERITY_COLOR[alert.severity] }} />
-                  {alert.severity}
+        <div className="grid h-full grid-cols-[1fr_280px] gap-5 pb-2">
+          <GlassPanel className="h-full min-h-0 p-5">
+            <div className="grid grid-cols-[126px_1fr_160px_104px] border-b border-[var(--sc-border)] pb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">
+              <span>Severity</span>
+              <span>Description</span>
+              <span>Site</span>
+              <span className="text-right">Time</span>
+            </div>
+            <div className="mt-3 grid h-[calc(100%-30px)] grid-rows-[repeat(10,minmax(0,1fr))] gap-2 overflow-hidden">
+              {alertRows.map((alert, index) => (
+                <div key={`${alert.site}-${alert.title}-${index}`} className="grid min-h-0 grid-cols-[126px_1fr_160px_104px] items-center gap-4 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-4 py-2">
+                  <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em]" style={{ color: SEVERITY_COLOR[alert.severity] }}>
+                    <span className="h-2 w-2 rounded-full" style={{ background: SEVERITY_COLOR[alert.severity] }} />
+                    {alert.severity}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-[15px] font-semibold text-[var(--sc-text-strong)]">{alert.title}</p>
+                    <p className="mt-1 truncate font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">{alert.domain}</p>
+                  </div>
+                  <p className="truncate text-[13px] text-[var(--sc-text-muted)]">{alert.site}</p>
+                  <p className="text-right font-mono text-[11px] text-[var(--sc-text-muted)]">{formatClockTime(alert.time)}</p>
                 </div>
-                <div className="min-w-0">
-                  <p className="truncate text-[15px] font-semibold text-[var(--sc-text-strong)]">{alert.title}</p>
-                  <p className="mt-1 truncate font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">{alert.domain}</p>
-                </div>
-                <p className="truncate text-[13px] text-[var(--sc-text-muted)]">{alert.site}</p>
-                <p className="text-right font-mono text-[11px] text-[var(--sc-text-muted)]">{formatClockTime(alert.time)}</p>
+              ))}
+            </div>
+          </GlassPanel>
+          <div className="grid min-h-0 grid-rows-[1fr_1fr] gap-5">
+            <GlassPanel className="p-5">
+              <WallSectionHeading label="Severity mix" detail="Current alert queue" />
+              <div className="mt-5 grid gap-3">
+                {bySeverity.map(item => (
+                  <div key={item.label}>
+                    <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.12em]">
+                      <span style={{ color: item.color }}>{item.label}</span>
+                      <span className="text-[var(--sc-text-strong)]">{item.value}</span>
+                    </div>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/5">
+                      <div className="h-full rounded-full" style={{ width: `${Math.max(3, (item.value / Math.max(active, 1)) * 100)}%`, background: item.color }} />
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </GlassPanel>
+            <GlassPanel className="p-5">
+              <WallSectionHeading label="Domain load" detail="Highest-volume alert sources" />
+              <div className="mt-5 grid gap-3">
+                {byDomain.map(([domain, value]) => (
+                  <div key={domain} className="grid grid-cols-[1fr_44px] items-center gap-3 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-3 py-2">
+                    <p className="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">{domain}</p>
+                    <p className="text-right font-mono text-[18px] font-semibold text-[var(--sc-text-strong)]">{value}</p>
+                  </div>
+                ))}
+              </div>
+            </GlassPanel>
           </div>
-        </GlassPanel>
+        </div>
       )}
     </WallViewFrame>
   );
@@ -587,6 +637,8 @@ export function OTDeepDive({ filters, slot }: WallViewProps) {
       return a.domains.ot_assets.score - b.domains.ot_assets.score;
     })
     .slice(0, 6);
+  const rankedRows = repeatedRows(ranked, 6);
+  const recentSignals = repeatedRows(getRecentEvents(sites), 5);
   const composition = [
     { label: 'PLCs', value: plcs, tone: 'primary' as WallTone },
     { label: 'HMIs', value: hmis, tone: 'watch' as WallTone },
@@ -606,7 +658,7 @@ export function OTDeepDive({ filters, slot }: WallViewProps) {
             value={total}
             detail="PLCs, HMIs, and SCADA nodes currently represented in the selected operating scope."
             trend={`${sites.length} site${sites.length === 1 ? '' : 's'} · ${filters.timeRange}`}
-            tone={postureTone}
+            tone="primary"
             icon={<Cpu className="h-8 w-8" />}
           />
           <WallKpiCard label="OT posture" value={averageScore} detail="Average index" tone={postureTone} />
@@ -667,24 +719,40 @@ export function OTDeepDive({ filters, slot }: WallViewProps) {
           </GlassPanel>
         </div>
 
-        <GlassPanel className="min-h-0 p-5">
-          <WallSectionHeading label="OT exposure watchlist" detail="Ranked by OT status and lowest posture score" />
-          <div className="mt-5 flex min-h-0 flex-col gap-3 overflow-auto pr-1 styled-scrollbar">
-            {ranked.map((site, index) => {
-              const assetCount = site.domains.ot_assets.plcs + site.domains.ot_assets.hmis + site.domains.ot_assets.scada;
-              return (
-                <RankedListRow
-                  key={site.id}
-                  rank={index + 1}
-                  title={site.name}
-                  meta={`${site.region} · ${site.businessUnit} · ${assetCount} assets`}
-                  value={site.domains.ot_assets.score}
-                  status={site.domains.ot_assets.status}
-                />
-              );
-            })}
-          </div>
-        </GlassPanel>
+        <div className="grid min-h-0 grid-rows-[1fr_0.9fr] gap-5">
+          <GlassPanel className="min-h-0 p-5">
+            <WallSectionHeading label="OT exposure watchlist" detail="Ranked by OT status and lowest posture score" />
+            <div className="mt-5 grid h-[calc(100%-58px)] grid-rows-6 gap-3 overflow-hidden">
+              {rankedRows.map((site, index) => {
+                const assetCount = site.domains.ot_assets.plcs + site.domains.ot_assets.hmis + site.domains.ot_assets.scada;
+                return (
+                  <RankedListRow
+                    key={`${site.id}-${index}`}
+                    rank={index + 1}
+                    title={site.name}
+                    meta={`${site.region} · ${site.businessUnit} · ${assetCount} assets`}
+                    value={site.domains.ot_assets.score}
+                    status={site.domains.ot_assets.status}
+                  />
+                );
+              })}
+            </div>
+          </GlassPanel>
+          <GlassPanel className="min-h-0 p-5">
+            <WallSectionHeading label="Recent OT signals" detail="Asset and control-plane activity" />
+            <div className="mt-5 grid h-[calc(100%-58px)] grid-rows-5 gap-2 overflow-hidden">
+              {recentSignals.map((event, index) => (
+                <div key={`${event.site}-${event.title}-${index}`} className="grid grid-cols-[70px_1fr] items-center gap-3 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-3 py-2">
+                  <p className="font-mono text-[10px] text-[var(--sc-text-muted)]">{formatClockTime(event.time)}</p>
+                  <div className="min-w-0">
+                    <p className="truncate text-[13px] font-semibold text-[var(--sc-text-strong)]">{event.title}</p>
+                    <p className="truncate font-mono text-[10px] uppercase tracking-[0.12em]" style={{ color: SEVERITY_COLOR[event.severity] }}>{event.site} · {event.severity}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </GlassPanel>
+        </div>
       </div>
     </WallViewFrame>
   );
@@ -702,6 +770,7 @@ export function ITDeepDive({ filters, slot }: WallViewProps) {
   const ranked = [...sites]
     .sort((a, b) => b.domains.it_assets.endpoints - a.domains.it_assets.endpoints)
     .slice(0, 6);
+  const rankedRows = repeatedRows(ranked, 7);
   const composition = [
     { label: 'Endpoints', value: endpoints, tone: 'primary' as WallTone },
     { label: 'Servers', value: servers, tone: 'neutral' as WallTone },
@@ -722,7 +791,7 @@ export function ITDeepDive({ filters, slot }: WallViewProps) {
             value={total}
             detail="Servers, endpoints, network devices, and cloud workloads in the selected scope."
             trend={`${endpoints} endpoints`}
-            tone={postureTone}
+            tone="primary"
             icon={<Server className="h-8 w-8" />}
           />
           <WallKpiCard label="IT posture" value={averageScore} detail="Average index" tone={postureTone} />
@@ -730,13 +799,13 @@ export function ITDeepDive({ filters, slot }: WallViewProps) {
         </div>
       )}
     >
-      <div className="grid h-full grid-cols-[1.05fr_0.95fr] gap-5 pb-2">
+      <div className="grid h-full grid-cols-[1fr_1fr] gap-5 pb-2">
         <GlassPanel className="min-h-0 p-5">
           <WallSectionHeading label="Endpoint concentration" detail="Largest endpoint estates in scope" />
-          <div className="mt-5 flex min-h-0 flex-col gap-3 overflow-auto pr-1 styled-scrollbar">
-            {ranked.map((site, index) => (
+          <div className="mt-5 grid h-[calc(100%-58px)] grid-rows-7 gap-3 overflow-hidden">
+            {rankedRows.map((site, index) => (
               <RankedListRow
-                key={site.id}
+                key={`${site.id}-${index}`}
                 rank={index + 1}
                 title={site.name}
                 meta={`${site.businessUnit} · ${site.domains.it_assets.servers} servers · ${site.domains.it_assets.cloud} cloud`}
@@ -748,13 +817,15 @@ export function ITDeepDive({ filters, slot }: WallViewProps) {
         </GlassPanel>
 
         <div className="grid min-h-0 grid-rows-[auto_1fr] gap-5">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <WallKpiCard label="Servers" value={servers} detail={`${Math.round((servers / Math.max(total, 1)) * 100)}% of estate`} tone="neutral" />
+            <WallKpiCard label="Endpoints" value={endpoints} detail={`${Math.round((endpoints / Math.max(total, 1)) * 100)}% of estate`} />
             <WallKpiCard label="Network" value={network} detail={`${Math.round((network / Math.max(total, 1)) * 100)}% of estate`} tone="watch" />
+            <WallKpiCard label="Cloud" value={cloud} detail={`${Math.round((cloud / Math.max(total, 1)) * 100)}% of estate`} tone="ok" />
           </div>
           <GlassPanel className="min-h-0 p-5">
             <WallSectionHeading label="Estate mix" detail="Infrastructure composition" />
-            <div className="mt-5 grid gap-4">
+            <div className="mt-5 grid h-[calc(100%-58px)] content-between gap-5">
               {composition.map(item => (
                 <div key={item.label}>
                   <div className="flex items-center justify-between gap-4">
@@ -862,7 +933,9 @@ export function ActivityFeed({ filters, slot }: WallViewProps) {
     return () => clearInterval(id);
   }, []);
   const events = getRecentEvents(scoped);
-  const visible = Array.from({ length: Math.min(11, events.length) }, (_, index) => events[(index + tick) % events.length]).filter(Boolean);
+  const visible = events.length
+    ? Array.from({ length: 13 }, (_, index) => events[(index + tick) % events.length])
+    : [];
   const critical = events.filter(event => event.severity === 'CRITICAL').length;
 
   return (
@@ -878,7 +951,7 @@ export function ActivityFeed({ filters, slot }: WallViewProps) {
             value={events.length}
             detail="Rolling activity timeline across the selected site or enterprise scope."
             trend="Rotates every 4.5s"
-            tone={critical > 0 ? 'critical' : 'primary'}
+            tone="primary"
             icon={<Activity className="h-8 w-8" />}
           />
           <WallKpiCard label="Critical" value={critical} detail="In current feed" tone={critical > 0 ? 'critical' : 'ok'} />
@@ -887,16 +960,16 @@ export function ActivityFeed({ filters, slot }: WallViewProps) {
       )}
     >
       <GlassPanel className="h-full min-h-0 overflow-hidden p-5">
-        <div className="flex h-full min-h-0 flex-col gap-2">
+        <div className="grid h-full min-h-0 grid-rows-[repeat(13,minmax(0,1fr))] gap-2">
           {visible.map((event, index) => (
             <div
               key={`${event.site}-${event.title}-${index}-${tick}`}
-              className="grid grid-cols-[90px_54px_1fr_150px] items-center gap-4 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-4 py-3 transition-opacity duration-500"
+              className="grid min-h-0 grid-cols-[90px_44px_1fr_150px] items-center gap-4 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-4 py-2 transition-opacity duration-500"
               style={{ opacity: 1 - index * 0.035 }}
             >
               <p className="font-mono text-[11px] text-[var(--sc-text-muted)]">{formatClockTime(event.time)}</p>
-              <span className="grid h-10 w-10 place-items-center rounded-[var(--sc-radius)] bg-[var(--sc-hover)] text-[var(--sc-primary)]">
-                <Activity className="h-5 w-5" />
+              <span className="grid h-8 w-8 place-items-center rounded-[var(--sc-radius)] bg-[var(--sc-hover)] text-[var(--sc-primary)]">
+                <Activity className="h-4 w-4" />
               </span>
               <div className="min-w-0">
                 <p className="truncate text-[15px] font-semibold text-[var(--sc-text-strong)]">{event.title}</p>
