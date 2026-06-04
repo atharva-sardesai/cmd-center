@@ -32,16 +32,16 @@ export default function ScaleBar({ zoom, latitude }: ScaleBarProps) {
   return (
     <div className="flex items-end gap-2 pointer-events-none">
       <div className="flex flex-col items-start">
-        <span className="text-[7px] font-mono text-[var(--text-muted)] tracking-wider mb-0.5">
+        <span className="text-[12px] font-mono text-[var(--text-muted)] tracking-wider mb-0.5">
           {scaleInfo.label}
         </span>
         <div
-          className="h-[2px] bg-[var(--gold-primary)] rounded-full"
+          className="h-[2px] bg-[var(--accent-primary)] rounded-full"
           style={{ width: scaleInfo.barWidth }}
         />
         <div className="flex justify-between w-full">
-          <div className="w-[1px] h-1 bg-[var(--gold-primary)]" />
-          <div className="w-[1px] h-1 bg-[var(--gold-primary)]" />
+          <div className="w-[1px] h-1 bg-[var(--accent-primary)]" />
+          <div className="w-[1px] h-1 bg-[var(--accent-primary)]" />
         </div>
       </div>
     </div>
