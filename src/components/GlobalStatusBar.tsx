@@ -2,121 +2,92 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Shield } from 'lucide-react';
+import { MASTER_SITES } from '@/data/sites';
 
 interface DomainStatus { key: string; label: string; score: number; trend: number; status: string; }
 
+type RiskPayload = {
+  posture_score?: number;
+  domains?: DomainStatus[];
+  timestamp?: string;
+};
+
+const DOMAIN_KEYS = [
+  'exposure',
+  'app_assurance',
+  'arch_reviews',
+  'dlp',
+  'ot_assets',
+  'it_assets',
+  'awareness',
+  'sim_campaigns',
+  'access_recert',
+  'app_governance',
+  'activity_retention',
+  'posture_index',
+] as const;
+
+function hasCriticalStatus(site: (typeof MASTER_SITES)[number]) {
+  return DOMAIN_KEYS.some(key => site.domains[key].status === 'CRITICAL');
+}
+
+function countCriticalDomains() {
+  return MASTER_SITES.reduce(
+    (total, site) => total + DOMAIN_KEYS.filter(key => site.domains[key].status === 'CRITICAL').length,
+    0
+  );
+}
+
+function formatRefresh(timestamp?: string) {
+  const source = timestamp ? new Date(timestamp) : new Date();
+  return source.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) + 'Z';
+}
+
 export default function GlobalStatusBar() {
-  const [domains, setDomains] = useState<DomainStatus[]>([]);
   const [postureScore, setPostureScore] = useState<number | null>(null);
-  const [assurance, setAssurance] = useState<any>(null);
   const [lastUpdated, setLastUpdated] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [riskRes, assurRes] = await Promise.allSettled([
-          fetch('/api/country-risk'),
-          fetch('/api/cyber-threats'),
-        ]);
-        if (riskRes.status === 'fulfilled' && riskRes.value.ok) {
-          const d = await riskRes.value.json();
-          setDomains(d.domains || []);
-          setPostureScore(d.posture_score ?? null);
-          setLastUpdated(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) + 'Z');
+        const riskRes = await fetch('/api/country-risk');
+        if (riskRes.ok) {
+          const payload = await riskRes.json() as RiskPayload;
+          setPostureScore(payload.posture_score ?? null);
+          setLastUpdated(formatRefresh(payload.timestamp));
         }
-        if (assurRes.status === 'fulfilled' && assurRes.value.ok) {
-          setAssurance(await assurRes.value.json());
-        }
-      } catch { /* suppress */ }
+      } catch { /* keep the last known metric values */ }
     };
     fetchData();
     const iv = setInterval(fetchData, 1800000);
     return () => clearInterval(iv);
   }, []);
 
-  if (!domains.length && postureScore === null) return null;
-
-  const statusColor = (s: string) =>
-    s === 'CRITICAL' ? '#FF3D3D' : s === 'WATCH' ? '#FFD700' : '#00E676';
-
-  const openFindings = assurance?.stats?.active_cves ?? 0;
-
-  const tickerContent = (
-    <>
-      {/* Posture Index */}
-      <span className="inline-flex items-center gap-1.5 mx-3">
-        <Shield className="w-2.5 h-2.5 text-[var(--cyan-primary)]" />
-        <span className="text-[var(--text-muted)]">POSTURE INDEX</span>
-        <span
-          className="font-bold tabular-nums"
-          style={{ color: (postureScore ?? 0) >= 80 ? '#00E676' : (postureScore ?? 0) >= 65 ? '#FFD700' : '#FF3D3D' }}
-        >
-          {postureScore ?? '—'}/100
-        </span>
-      </span>
-
-      <span className="text-[var(--border-primary)] mx-1">|</span>
-
-      {/* Domain scores */}
-      {domains.map(d => (
-        <span key={d.key} className="inline-flex items-center gap-0.5 mx-2">
-          <span
-            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-            style={{ backgroundColor: statusColor(d.status) }}
-          />
-          <span className="text-[var(--text-muted)]">{d.label.split(' ')[0]}</span>
-          <span className="font-bold tabular-nums" style={{ color: statusColor(d.status) }}>
-            {d.score}
-          </span>
-          <span className="text-[8px]" style={{ color: d.trend >= 0 ? '#00E676' : '#FF3D3D' }}>
-            {d.trend >= 0 ? `↑${d.trend}` : `↓${Math.abs(d.trend)}`}
-          </span>
-        </span>
-      ))}
-
-      <span className="text-[var(--border-primary)] mx-1">|</span>
-
-      {/* Open findings */}
-      <span className="inline-flex items-center gap-1 mx-2">
-        <span className="text-[var(--cyan-primary)]">OPEN FINDINGS</span>
-        <span className="text-[var(--text-primary)] font-bold">{openFindings}</span>
-      </span>
-
-      {lastUpdated && (
-        <>
-          <span className="text-[var(--border-primary)] mx-1">|</span>
-          <span className="text-[var(--text-muted)] mx-2">UPDATED {lastUpdated}</span>
-        </>
-      )}
-    </>
-  );
+  const metrics = [
+    { label: 'OPEN CRITICALS', value: countCriticalDomains().toLocaleString() },
+    { label: 'SITES AT RISK', value: MASTER_SITES.filter(hasCriticalStatus).length.toLocaleString() },
+    { label: 'POSTURE INDEX', value: `${postureScore ?? '—'}/100` },
+    { label: 'LAST REFRESH', value: lastUpdated || '—' },
+  ];
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ delay: 4, duration: 0.8 }}
-      className="hidden md:block absolute bottom-0 left-0 right-0 z-[198] pointer-events-none"
+      transition={{ delay: 3, duration: 0.5 }}
+      className="hidden md:flex absolute bottom-0 left-0 right-0 z-[198] h-10 pointer-events-none items-center justify-center glass-panel glass-panel-left rounded-none border-x-0 border-b-0"
     >
-      <div className="h-[22px] overflow-hidden bg-[var(--bg-panel)]/80 border-t border-[var(--border-secondary)]/50 flex items-center text-[8px] font-mono tracking-wider backdrop-blur-sm">
-        {/* Static label */}
-        <div className="flex-shrink-0 px-2 h-full flex items-center gap-1 border-r border-[var(--border-secondary)]/50 bg-[var(--bg-panel)] pointer-events-auto">
-          <Shield className="w-2.5 h-2.5 text-[var(--cyan-primary)]" />
-          <span
-            className="font-bold tabular-nums"
-            style={{ color: (postureScore ?? 0) >= 80 ? '#00E676' : (postureScore ?? 0) >= 65 ? '#FFD700' : '#FF3D3D' }}
-          >
-            {postureScore ?? '—'}
-          </span>
-        </div>
-        {/* Scrolling ticker */}
-        <div className="flex-1 overflow-hidden relative">
-          <div className="flex items-center animate-ticker whitespace-nowrap">
-            {tickerContent}
-            {tickerContent}
+      <div className="flex items-center justify-center gap-6">
+        {metrics.map(metric => (
+          <div key={metric.label} className="flex items-baseline gap-2">
+            <span className="text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">
+              {metric.label}
+            </span>
+            <span className="font-mono text-[14px] font-normal tabular-nums text-[var(--text-primary)]">
+              {metric.value}
+            </span>
           </div>
-        </div>
+        ))}
       </div>
     </motion.div>
   );
