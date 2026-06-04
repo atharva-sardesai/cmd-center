@@ -27,7 +27,7 @@ export default function ViewPresets({ onNavigate }: ViewPresetsProps) {
       className="glass-panel p-2.5 pointer-events-auto"
     >
       <div className="flex items-center gap-2 mb-2">
-        <Globe className="w-3.5 h-3.5 text-[var(--gold-primary)]" />
+        <Globe className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
         <span className="hud-text text-[12px] text-[var(--text-primary)] tracking-widest">REGION PRESETS</span>
       </div>
       <div className="grid grid-cols-2 gap-1">
@@ -35,7 +35,7 @@ export default function ViewPresets({ onNavigate }: ViewPresetsProps) {
           <button
             key={p.label}
             onClick={() => onNavigate(p.lat, p.lng, p.zoom)}
-            className="flex items-center gap-1.5 px-2 py-1.5 rounded text-[10px] font-mono tracking-wider border border-transparent text-[var(--text-muted)] hover:bg-[var(--hover-accent)] hover:border-[var(--border-primary)] hover:text-[var(--gold-primary)] transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="flex items-center gap-1.5 px-2 py-1.5 rounded text-[12px] font-mono tracking-wider border border-transparent text-[var(--text-muted)] hover:bg-[var(--hover-accent)] hover:border-[var(--border-primary)] hover:text-[var(--accent-primary)] transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <MapPin className="w-3 h-3 flex-shrink-0" />
             <span>{p.label}</span>
