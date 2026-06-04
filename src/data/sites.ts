@@ -56,6 +56,8 @@ function sev(c: number, f: number): SevLevel {
 //   posture: 0–100 overall score
 //   expF: exposure finding count   itSv: IT server count   otP: OT PLC count
 //   acts: [type, title, severity, hoursAgo]
+const DEMO_ACTIVITY_BASE_TIME = Date.UTC(2026, 4, 29, 12, 0, 0);
+
 function build(
   id: string, name: string, lat: number, lng: number, region: string, bu: string,
   posture: number, expF: number, itSv: number, otP: number, archType: string,
@@ -147,7 +149,7 @@ function build(
       posture_index: { score: posture, trend: 0, status: ss(posture) },
     },
     recentActivity: acts.map(([type, title, severity, h]) => ({
-      time: new Date(Date.now() - h * 3600000).toISOString(),
+      time: new Date(DEMO_ACTIVITY_BASE_TIME - h * 3600000).toISOString(),
       type, title, severity,
     })),
   };

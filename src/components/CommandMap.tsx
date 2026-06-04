@@ -346,7 +346,7 @@ function CommandMap({
         paint: {
           'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], ['*', ['get','markerRadius'], 1.15], ['get','markerRadius']],
           'circle-color': ['get','statusColor'],
-          'circle-opacity': markerOpacity,
+          'circle-opacity': 0.7,
           'circle-stroke-width': ['case', ['boolean', ['feature-state', 'hover'], false], 1.5, 1],
           'circle-stroke-color': ['get','statusColor'],
           'circle-stroke-opacity': 1,
@@ -770,7 +770,7 @@ function CommandMap({
               postureScore: s.postureScore,
               status: worstStatus,
               statusColor: STATUS_COLORS[worstStatus],
-              markerRadius: Math.max(4, getMarkerRadius(activityVolume) * markerScale),
+              markerRadius: getMarkerRadius(activityVolume),
               activityVolume,
               region: s.region,
             },

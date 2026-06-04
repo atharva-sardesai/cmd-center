@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, MapPin, AlertTriangle, Clock } from 'lucide-react';
 import { GlassPanel } from '@/components/ui/glass-panel';
+import { formatClockTime } from '@/lib/time-format';
 
 interface LiveAlertsProps {
   data: any;
@@ -102,7 +103,7 @@ export default function LiveAlerts({ data, onLocate }: LiveAlertsProps) {
                           {alert.time && (
                             <span className="text-[12px] font-mono text-[var(--text-muted)] flex items-center gap-0.5">
                               <Clock className="w-2 h-2" />
-                              {new Date(alert.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {formatClockTime(alert.time)}
                             </span>
                           )}
                         </div>
