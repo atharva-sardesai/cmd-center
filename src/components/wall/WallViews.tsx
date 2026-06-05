@@ -166,8 +166,8 @@ function WallViewFrame({ title, kicker, filters, slot, hero, children }: {
   const domainCount = filters.activeDomains.length || ALL_LAYERS.length;
 
   return (
-    <section className="absolute inset-0 flex flex-col gap-5 overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.08),transparent_34%),var(--sc-bg-0)] px-6 py-5 text-[var(--sc-text)]">
-      <header className="grid h-[76px] shrink-0 grid-cols-[1fr_auto] items-start gap-6 border-b border-[var(--sc-border)] pb-4">
+    <section className="absolute inset-0 grid min-h-0 grid-rows-[auto_auto_minmax(0,1fr)] gap-5 overflow-x-hidden overflow-y-auto bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.08),transparent_34%),var(--sc-bg-0)] px-6 py-5 text-[var(--sc-text)] styled-scrollbar">
+      <header className="grid min-h-[76px] grid-cols-[minmax(0,1fr)_auto] items-start gap-6 border-b border-[var(--sc-border)] pb-4 max-md:grid-cols-1">
         <div className="min-w-0">
           <p className="font-mono text-[13px] uppercase tracking-[0.14em] text-[var(--sc-primary)]">Slot {slot} · {kicker}</p>
           <h1 className="mt-2 truncate text-[28px] font-semibold leading-none text-[var(--sc-text-strong)]">{title}</h1>
@@ -180,12 +180,8 @@ function WallViewFrame({ title, kicker, filters, slot, hero, children }: {
         </div>
       </header>
 
-      <div className="shrink-0">{hero}</div>
-      <div className="min-h-0 flex-1">{children}</div>
-
-      <div className="pointer-events-none absolute bottom-5 right-6 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--sc-text-subtle)]">
-        DEMO DATA
-      </div>
+      <div>{hero}</div>
+      <div className="min-h-[360px] overflow-hidden">{children}</div>
     </section>
   );
 }
@@ -201,8 +197,8 @@ function WallHeroStat({ label, value, detail, trend, tone = 'primary', icon }: {
   const color = toneColor(tone);
 
   return (
-    <GlassPanel className="h-[128px] p-5">
-      <div className="min-w-0">
+    <GlassPanel className="min-h-[150px] p-5">
+      <div className="flex min-w-0 flex-col gap-3">
         <div className="flex items-center gap-3">
           {icon && (
             <span className="grid h-8 w-8 place-items-center rounded-[var(--sc-radius)] bg-[var(--sc-hover)] text-[var(--sc-primary)]">
@@ -211,8 +207,8 @@ function WallHeroStat({ label, value, detail, trend, tone = 'primary', icon }: {
           )}
           <p className="font-mono text-[13px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">{label}</p>
         </div>
-        <div className="mt-3 flex items-end gap-4">
-          <p className="font-mono text-[56px] font-semibold leading-[0.86]" style={{ color: tone === 'primary' ? 'var(--sc-text-strong)' : color }}>{value}</p>
+        <div className="flex flex-wrap items-end gap-4">
+          <p className="font-mono text-[56px] font-semibold leading-none" style={{ color: tone === 'primary' ? 'var(--sc-text-strong)' : color }}>{value}</p>
           {trend && (
             <p className="mb-1 inline-flex items-center gap-2 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/25 px-3 py-2 font-mono text-[13px] uppercase tracking-[0.1em] text-[var(--sc-text-muted)]">
               <TrendingUp className="h-3.5 w-3.5 text-[var(--sc-primary)]" />
@@ -220,7 +216,7 @@ function WallHeroStat({ label, value, detail, trend, tone = 'primary', icon }: {
             </p>
           )}
         </div>
-        <p className="mt-2 text-[15px] leading-snug text-[var(--sc-text-muted)]">{detail}</p>
+        <p className="text-[15px] leading-snug text-[var(--sc-text-muted)]">{detail}</p>
       </div>
     </GlassPanel>
   );
@@ -235,9 +231,9 @@ function WallKpiCard({ label, value, detail, tone = 'primary' }: {
   const color = toneColor(tone);
 
   return (
-    <GlassPanel className="flex h-full min-h-[96px] flex-col justify-between p-4">
-      <p className="font-mono text-[13px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">{label}</p>
-      <div>
+    <GlassPanel className="flex min-h-[148px] flex-col p-4">
+      <p className="font-mono text-[13px] leading-relaxed uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">{label}</p>
+      <div className="min-w-0 pt-4">
         <p className="font-mono text-[30px] font-semibold leading-none" style={{ color: tone === 'primary' ? 'var(--sc-text-strong)' : color }}>{value}</p>
         {detail && <p className="mt-2 text-[15px] leading-snug text-[var(--sc-text-muted)]">{detail}</p>}
         <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/5">
@@ -251,7 +247,7 @@ function WallKpiCard({ label, value, detail, tone = 'primary' }: {
 function WallStatusPill({ status }: { status: StatusLevel }) {
   return (
     <span
-      className="inline-flex items-center gap-2 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/25 px-2.5 py-1 font-mono text-[12px] uppercase tracking-[0.1em]"
+      className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/25 px-2.5 py-1 font-mono text-[12px] uppercase tracking-[0.1em]"
       style={{ color: STATUS_COLOR[status] }}
     >
       <span className="h-1.5 w-1.5 rounded-full" style={{ background: STATUS_COLOR[status] }} />
@@ -279,16 +275,16 @@ function RankedListRow({ rank, title, meta, value, status }: {
   status: StatusLevel;
 }) {
   return (
-    <div className="grid grid-cols-[46px_1fr_100px] items-center gap-4 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-4 py-3">
+    <div className="grid min-h-[92px] grid-cols-[46px_minmax(0,1fr)_auto_100px] items-center gap-4 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-4 py-3 max-md:grid-cols-[40px_minmax(0,1fr)]">
       <span className="font-mono text-[14px] text-[var(--sc-text-subtle)]">#{rank}</span>
-      <div className="min-w-0">
-        <div className="flex min-w-0 items-center gap-3">
-          <p className="truncate text-[17px] font-semibold text-[var(--sc-text-strong)]">{title}</p>
-          <WallStatusPill status={status} />
-        </div>
+      <div className="flex min-w-0 flex-col gap-1">
+        <p className="truncate text-[17px] font-semibold leading-snug text-[var(--sc-text-strong)]">{title}</p>
         <p className="mt-1 truncate font-mono text-[12px] uppercase tracking-[0.1em] text-[var(--sc-text-muted)]">{meta}</p>
       </div>
-      <p className="text-right font-mono text-[26px] font-semibold leading-none text-[var(--sc-text-strong)]">{value}</p>
+      <div className="justify-self-start max-md:col-start-2 max-md:row-start-2">
+        <WallStatusPill status={status} />
+      </div>
+      <p className="text-right font-mono text-[26px] font-semibold leading-none text-[var(--sc-text-strong)] max-md:col-start-2 max-md:row-start-3 max-md:text-left">{value}</p>
     </div>
   );
 }
@@ -688,9 +684,6 @@ export function MapWallView({ filters, slot, mode = 'display', onDraftSiteSelect
         <MiniMetric label="Critical" value={statusCounts.CRITICAL} tone="critical" />
         <MiniMetric label="Time Range" value={filters.timeRange} />
       </div>
-      <div className="pointer-events-none absolute right-5 top-5 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--sc-text-subtle)]">
-        DEMO DATA
-      </div>
     </section>
   );
 }
@@ -781,7 +774,7 @@ export function AlertsBoard({ filters, slot }: WallViewProps) {
       filters={filters}
       slot={slot}
       hero={(
-        <div className="grid grid-cols-[1fr_180px_180px] gap-5">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_180px_180px]">
           <WallHeroStat
             label="Active alerts"
             value={active}
@@ -802,35 +795,37 @@ export function AlertsBoard({ filters, slot }: WallViewProps) {
           <p className="mt-3 text-[15px] text-[var(--sc-text-muted)]">The selected enterprise or site scope has no recent alert rows.</p>
         </GlassPanel>
       ) : (
-        <div className="grid h-full grid-cols-[1fr_280px] gap-5 pb-2">
-          <GlassPanel className="h-full min-h-0 p-5">
-            <div className="grid grid-cols-[136px_1fr_170px_110px] border-b border-[var(--sc-border)] pb-3 font-mono text-[13px] uppercase tracking-[0.1em] text-[var(--sc-text-muted)]">
+        <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)_280px] gap-5 pb-2 max-lg:grid-cols-1">
+          <GlassPanel className="flex min-h-0 flex-col p-5">
+            <div className="grid grid-cols-[136px_1fr_170px_110px] border-b border-[var(--sc-border)] pb-3 font-mono text-[13px] uppercase tracking-[0.1em] text-[var(--sc-text-muted)] max-lg:hidden">
               <span>Severity</span>
               <span>Description</span>
               <span>Site</span>
               <span className="text-right">Time</span>
             </div>
-            <div className="mt-3 grid h-[calc(100%-34px)] grid-rows-[repeat(10,minmax(0,1fr))] gap-2 overflow-hidden">
+            <div className="mt-3 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1 styled-scrollbar">
               {alerts.slice(0, 10).map(alert => (
-                <div key={alert.id} className="grid min-h-0 grid-cols-[136px_1fr_170px_110px] items-center gap-4 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-4 py-2">
+                <div key={alert.id} className="grid min-h-[92px] grid-cols-[136px_minmax(0,1fr)_170px_110px] items-center gap-4 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-4 py-3 max-lg:grid-cols-[126px_minmax(0,1fr)]">
                   <div className="flex items-center gap-2 font-mono text-[13px] uppercase tracking-[0.1em]" style={{ color: SEVERITY_COLOR[alert.severity] }}>
                     <span className="h-2 w-2 rounded-full" style={{ background: SEVERITY_COLOR[alert.severity] }} />
                     {alert.severity}
                   </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-[18px] font-semibold text-[var(--sc-text-strong)]">{alert.title}</p>
-                    <p className="mt-1 truncate font-mono text-[12px] uppercase tracking-[0.1em] text-[var(--sc-text-muted)]">{alert.domain}</p>
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <p className="truncate text-[18px] font-semibold leading-snug text-[var(--sc-text-strong)]">{alert.title}</p>
+                    <p className="truncate font-mono text-[12px] uppercase tracking-[0.1em] text-[var(--sc-text-muted)]">
+                      {alert.domain} · {alert.site} · {formatClockTime(alert.time)}
+                    </p>
                   </div>
-                  <p className="truncate text-[16px] text-[var(--sc-text-muted)]">{alert.site}</p>
-                  <p className="text-right font-mono text-[13px] text-[var(--sc-text-muted)]">{formatClockTime(alert.time)}</p>
+                  <p className="truncate text-[16px] text-[var(--sc-text-muted)] max-lg:hidden">{alert.site}</p>
+                  <p className="text-right font-mono text-[13px] text-[var(--sc-text-muted)] max-lg:hidden">{formatClockTime(alert.time)}</p>
                 </div>
               ))}
             </div>
           </GlassPanel>
-          <div className="grid min-h-0 grid-rows-[1fr_1fr] gap-5">
-            <GlassPanel className="p-5">
+          <div className="grid min-h-0 grid-rows-[minmax(0,1fr)_minmax(0,1fr)] gap-5">
+            <GlassPanel className="min-h-0 overflow-hidden p-5">
               <WallSectionHeading label="Severity mix" detail="Current alert queue" />
-              <div className="mt-4 grid h-[calc(100%-58px)] grid-cols-[1fr_0.9fr] items-center gap-4">
+              <div className="mt-4 grid min-h-[220px] grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] items-center gap-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={bySeverity} margin={{ left: -18, right: 4, top: 8, bottom: 0 }}>
                     <XAxis dataKey="label" stroke="var(--sc-text-muted)" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
@@ -843,9 +838,9 @@ export function AlertsBoard({ filters, slot }: WallViewProps) {
                 <ChartLegend data={bySeverity} />
               </div>
             </GlassPanel>
-            <GlassPanel className="p-5">
+            <GlassPanel className="min-h-0 overflow-hidden p-5">
               <WallSectionHeading label="Domain load" detail="Highest-volume alert sources" />
-              <div className="mt-5 grid gap-3">
+              <div className="mt-5 flex max-h-[calc(100%-58px)] flex-col gap-3 overflow-y-auto pr-1 styled-scrollbar">
                 {byDomain.map(([domain, value]) => (
                   <div key={domain} className="grid grid-cols-[1fr_44px] items-center gap-3 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-3 py-2">
                     <p className="truncate font-mono text-[13px] uppercase tracking-[0.1em] text-[var(--sc-text-muted)]">{domain}</p>
@@ -885,7 +880,7 @@ export function OTDeepDive({ filters, slot }: WallViewProps) {
       filters={filters}
       slot={slot}
       hero={(
-        <div className="grid grid-cols-[1fr_180px_180px] gap-5">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_180px_180px]">
           <WallHeroStat
             label="Total OT assets"
             value={total}
@@ -899,17 +894,17 @@ export function OTDeepDive({ filters, slot }: WallViewProps) {
         </div>
       )}
     >
-      <div className="grid h-full grid-cols-[0.94fr_1.06fr] gap-5 pb-2">
+      <div className="grid h-full min-h-0 grid-cols-[minmax(0,0.94fr)_minmax(0,1.06fr)] gap-5 pb-2 max-lg:grid-cols-1">
         <div className="grid min-h-0 grid-rows-[auto_1fr] gap-5">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
             <WallKpiCard label="PLCs" value={plcs} detail={`${Math.round((plcs / Math.max(total, 1)) * 100)}% of OT`} />
             <WallKpiCard label="HMIs" value={hmis} detail={`${Math.round((hmis / Math.max(total, 1)) * 100)}% of OT`} />
             <WallKpiCard label="SCADA" value={scada} detail={`${Math.round((scada / Math.max(total, 1)) * 100)}% of OT`} />
           </div>
 
-          <GlassPanel className="min-h-0 p-5">
+          <GlassPanel className="min-h-0 overflow-hidden p-5">
             <WallSectionHeading label="Asset mix" detail="Composition across control and supervisory systems" />
-            <div className="mt-5 grid h-[calc(100%-118px)] min-h-[230px] grid-cols-[1fr_0.85fr] items-center gap-5">
+            <div className="mt-5 grid min-h-[230px] grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] items-center gap-5 max-md:grid-cols-1">
               <DonutChart data={composition} />
               <ChartLegend data={composition} />
             </div>
@@ -937,10 +932,10 @@ export function OTDeepDive({ filters, slot }: WallViewProps) {
           </GlassPanel>
         </div>
 
-        <div className="grid min-h-0 grid-rows-[1fr_0.9fr] gap-5">
-          <GlassPanel className="min-h-0 p-5">
+        <div className="grid min-h-0 grid-rows-[minmax(0,1fr)_minmax(0,0.9fr)] gap-5">
+          <GlassPanel className="flex min-h-0 flex-col p-5">
             <WallSectionHeading label="OT exposure watchlist" detail="Ranked by OT status and lowest posture score" />
-            <div className="mt-5 grid h-[calc(100%-58px)] grid-rows-6 gap-3 overflow-hidden">
+            <div className="mt-5 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1 styled-scrollbar">
               {rankedRows.map((row, index) => (
                 <RankedListRow
                   key={row.id}
@@ -953,14 +948,14 @@ export function OTDeepDive({ filters, slot }: WallViewProps) {
               ))}
             </div>
           </GlassPanel>
-          <GlassPanel className="min-h-0 p-5">
+          <GlassPanel className="flex min-h-0 flex-col p-5">
             <WallSectionHeading label="Recent OT signals" detail="Asset and control-plane activity" />
-            <div className="mt-5 grid h-[calc(100%-58px)] grid-rows-5 gap-2 overflow-hidden">
+            <div className="mt-5 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1 styled-scrollbar">
               {recentSignals.map((event, index) => (
-                <div key={`${event.site}-${event.title}-${index}`} className="grid grid-cols-[70px_1fr] items-center gap-3 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-3 py-2">
+                <div key={`${event.site}-${event.title}-${index}`} className="grid min-h-[82px] grid-cols-[78px_minmax(0,1fr)] items-center gap-3 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-3 py-3">
                   <p className="font-mono text-[12px] text-[var(--sc-text-muted)]">{formatClockTime(event.time)}</p>
-                  <div className="min-w-0">
-                    <p className="truncate text-[15px] font-semibold text-[var(--sc-text-strong)]">{event.title}</p>
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <p className="truncate text-[15px] font-semibold leading-snug text-[var(--sc-text-strong)]">{event.title}</p>
                     <p className="truncate font-mono text-[12px] uppercase tracking-[0.1em]" style={{ color: SEVERITY_COLOR[event.severity] }}>{event.site} · {event.severity}</p>
                   </div>
                 </div>
@@ -997,7 +992,7 @@ export function ITDeepDive({ filters, slot }: WallViewProps) {
       filters={filters}
       slot={slot}
       hero={(
-        <div className="grid grid-cols-[1fr_180px_180px] gap-5">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_180px_180px]">
           <WallHeroStat
             label="Total IT assets"
             value={total}
@@ -1011,10 +1006,10 @@ export function ITDeepDive({ filters, slot }: WallViewProps) {
         </div>
       )}
     >
-      <div className="grid h-full grid-cols-[1fr_1fr] gap-5 pb-2">
-        <GlassPanel className="min-h-0 p-5">
+      <div className="grid h-full min-h-0 grid-cols-2 gap-5 pb-2 max-lg:grid-cols-1">
+        <GlassPanel className="flex min-h-0 flex-col p-5">
           <WallSectionHeading label="Endpoint concentration" detail="Largest endpoint estates in scope" />
-          <div className="mt-5 grid h-[calc(100%-58px)] grid-rows-7 gap-3 overflow-hidden">
+          <div className="mt-5 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1 styled-scrollbar">
             {rankedRows.map((row, index) => (
               <RankedListRow
                 key={row.id}
@@ -1029,15 +1024,15 @@ export function ITDeepDive({ filters, slot }: WallViewProps) {
         </GlassPanel>
 
         <div className="grid min-h-0 grid-rows-[auto_1fr] gap-5">
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-4 gap-4 max-xl:grid-cols-2">
             <WallKpiCard label="Servers" value={servers} detail={`${Math.round((servers / Math.max(total, 1)) * 100)}% of estate`} />
             <WallKpiCard label="Endpoints" value={endpoints} detail={`${Math.round((endpoints / Math.max(total, 1)) * 100)}% of estate`} />
             <WallKpiCard label="Network" value={network} detail={`${Math.round((network / Math.max(total, 1)) * 100)}% of estate`} />
             <WallKpiCard label="Cloud" value={cloud} detail={`${Math.round((cloud / Math.max(total, 1)) * 100)}% of estate`} />
           </div>
-          <GlassPanel className="min-h-0 p-5">
+          <GlassPanel className="min-h-0 overflow-hidden p-5">
             <WallSectionHeading label="Estate mix" detail="Infrastructure composition" />
-            <div className="mt-5 grid h-[calc(100%-58px)] grid-cols-[1fr_0.85fr] items-center gap-5">
+            <div className="mt-5 grid min-h-[240px] grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] items-center gap-5 max-md:grid-cols-1">
               <DonutChart data={composition} />
               <ChartLegend data={composition} />
             </div>
@@ -1063,7 +1058,7 @@ export function PostureTrend({ filters, slot }: WallViewProps) {
       filters={filters}
       slot={slot}
       hero={(
-        <div className="grid grid-cols-[1fr_180px_180px] gap-5">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_180px_180px]">
           <WallHeroStat
             label="Current posture"
             value={current}
@@ -1078,9 +1073,9 @@ export function PostureTrend({ filters, slot }: WallViewProps) {
       )}
     >
       <div className="grid h-full grid-cols-[1fr_260px] gap-5 pb-2">
-        <GlassPanel className="min-h-0 p-5">
+        <GlassPanel className="flex min-h-0 flex-col p-5">
           <WallSectionHeading label="Posture movement" detail={`${filters.timeRange} trend by domain family`} />
-          <div className="mt-5 h-[calc(100%-58px)] min-h-[300px] w-full overflow-hidden">
+          <div className="mt-5 min-h-[260px] min-w-0 flex-1 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={points} margin={{ left: 0, right: 20, top: 14, bottom: 6 }}>
                 <CartesianGrid stroke="rgba(255,255,255,0.09)" vertical={false} />
@@ -1142,7 +1137,7 @@ export function ActivityFeed({ filters, slot }: WallViewProps) {
       filters={filters}
       slot={slot}
       hero={(
-        <div className="grid grid-cols-[1fr_180px_180px] gap-5">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_180px_180px]">
           <WallHeroStat
             label="Recent events"
             value={events.length}
@@ -1156,25 +1151,25 @@ export function ActivityFeed({ filters, slot }: WallViewProps) {
         </div>
       )}
     >
-      <GlassPanel className="h-full min-h-0 overflow-hidden p-5">
-        <div className="grid h-full min-h-0 grid-rows-[repeat(13,minmax(0,1fr))] gap-2">
+      <GlassPanel className="flex h-full min-h-0 flex-col overflow-hidden p-5">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1 styled-scrollbar">
           {visible.map((event, index) => (
             <div
               key={`${event.site}-${event.title}-${index}-${tick}`}
-              className="grid min-h-0 grid-cols-[90px_44px_1fr_150px] items-center gap-4 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-4 py-2 transition-opacity duration-500"
+              className="grid min-h-[92px] grid-cols-[96px_44px_minmax(0,1fr)_160px] items-center gap-4 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-4 py-3 transition-opacity duration-500 max-lg:grid-cols-[92px_minmax(0,1fr)]"
               style={{ opacity: 1 - index * 0.035 }}
             >
               <p className="font-mono text-[13px] text-[var(--sc-text-muted)]">{formatClockTime(event.time)}</p>
-              <span className="grid h-8 w-8 place-items-center rounded-[var(--sc-radius)] bg-[var(--sc-hover)] text-[var(--sc-primary)]">
+              <span className="grid h-8 w-8 place-items-center rounded-[var(--sc-radius)] bg-[var(--sc-hover)] text-[var(--sc-primary)] max-lg:hidden">
                 <Activity className="h-4 w-4" />
               </span>
-              <div className="min-w-0">
-                <p className="truncate text-[18px] font-semibold text-[var(--sc-text-strong)]">{event.title}</p>
-                <p className="mt-1 truncate font-mono text-[12px] uppercase tracking-[0.1em]" style={{ color: SEVERITY_COLOR[event.severity] }}>
-                  {event.domain} · {event.severity}
+              <div className="flex min-w-0 flex-col gap-1">
+                <p className="truncate text-[18px] font-semibold leading-snug text-[var(--sc-text-strong)]">{event.title}</p>
+                <p className="truncate font-mono text-[12px] uppercase tracking-[0.1em]" style={{ color: SEVERITY_COLOR[event.severity] }}>
+                  {event.domain} · {event.severity} · {event.site}
                 </p>
               </div>
-              <p className="truncate text-right text-[15px] text-[var(--sc-text-muted)]">{event.site}</p>
+              <p className="truncate text-right text-[15px] text-[var(--sc-text-muted)] max-lg:hidden">{event.site}</p>
             </div>
           ))}
         </div>
@@ -1196,7 +1191,7 @@ export function KpiGrid({ filters, slot }: WallViewProps) {
       filters={filters}
       slot={slot}
       hero={(
-        <div className="grid grid-cols-[1fr_180px_180px] gap-5">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_180px_180px]">
           <WallHeroStat
             label="Domain posture"
             value={average}
@@ -1210,9 +1205,9 @@ export function KpiGrid({ filters, slot }: WallViewProps) {
         </div>
       )}
     >
-      <div className="grid h-full grid-cols-4 grid-rows-3 gap-4 pb-2">
+      <div className="grid h-full min-h-0 grid-cols-4 gap-4 overflow-y-auto pb-2 pr-1 styled-scrollbar max-xl:grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-1">
         {cards.map(({ layer, value, status, trend }) => (
-          <GlassPanel key={layer.key} className="flex min-h-0 flex-col justify-between p-4">
+          <GlassPanel key={layer.key} className="flex min-h-[178px] flex-col justify-between p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate font-mono text-[12px] uppercase tracking-[0.1em] text-[var(--sc-text-muted)]">{layer.group}</p>
@@ -1271,7 +1266,7 @@ export function AwarenessBoard({ filters, slot }: WallViewProps) {
       filters={filters}
       slot={slot}
       hero={(
-        <div className="grid grid-cols-[1fr_180px_180px] gap-5">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_180px_180px]">
           <WallHeroStat
             label="Awareness completion"
             value={`${completion}%`}
@@ -1285,10 +1280,10 @@ export function AwarenessBoard({ filters, slot }: WallViewProps) {
         </div>
       )}
     >
-      <div className="grid h-full grid-cols-[1fr_1fr] gap-5 pb-2">
-        <GlassPanel className="min-h-0 p-5">
+      <div className="grid h-full min-h-0 grid-cols-2 gap-5 pb-2 max-lg:grid-cols-1">
+        <GlassPanel className="flex min-h-0 flex-col p-5">
           <WallSectionHeading label="Business unit completion" detail="Average awareness completion by unit" />
-          <div className="mt-5 h-[calc(100%-58px)] min-h-[300px] w-full overflow-hidden">
+          <div className="mt-5 min-h-[260px] min-w-0 flex-1 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ left: 0, right: 18, top: 14, bottom: 6 }}>
                 <CartesianGrid stroke="rgba(255,255,255,0.09)" vertical={false} />
@@ -1299,9 +1294,9 @@ export function AwarenessBoard({ filters, slot }: WallViewProps) {
             </ResponsiveContainer>
           </div>
         </GlassPanel>
-        <GlassPanel className="min-h-0 p-5">
+        <GlassPanel className="flex min-h-0 flex-col p-5">
           <WallSectionHeading label="Campaign watchlist" detail="Completion and simulated-campaign risk by unit" />
-          <div className="mt-5 flex min-h-0 flex-col gap-3 overflow-auto pr-1 styled-scrollbar">
+          <div className="mt-5 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1 styled-scrollbar">
             {byUnit.map((unit, index) => (
               <RankedListRow
                 key={unit.unit}
