@@ -18,6 +18,12 @@ export interface SiteRecord {
   region:       string;
   businessUnit: string;
   postureScore: number;
+  deskAnalytics: {
+    appClassification: { class1: number; class2: number; class3: number };
+    vulnerabilitySeverity: { critical: number; high: number; medium: number; low: number };
+    drStatus: { protected: number; atRisk: number; noDr: number };
+    compliance: { frameworkA: number; frameworkB: number; frameworkC: number };
+  };
   domains: {
     exposure:           DomainData & { findings: number; criticals: number; severity: SevLevel };
     app_assurance:      DomainData & { findings: number; openTests: number };
@@ -85,6 +91,17 @@ function build(
   const govNC    = Math.round((100 - posture) * 0.15);
   const retPct   = Math.min(100, Math.round(posture * 0.85 + 15));
   const retDays  = Math.round(retPct * 1.8);
+  const appTotal = Math.max(18, Math.round(itSv * 0.42));
+  const appClass1 = Math.max(3, Math.round(appTotal * (0.16 + (100 - posture) / 500)));
+  const appClass2 = Math.max(5, Math.round(appTotal * 0.34));
+  const appClass3 = Math.max(1, appTotal - appClass1 - appClass2);
+  const vulnHigh = Math.max(expC, Math.round(expF * (posture < 70 ? 0.25 : 0.18)));
+  const vulnMedium = Math.max(1, Math.round(expF * 0.34));
+  const vulnLow = Math.max(0, expF - expC - vulnHigh - vulnMedium);
+  const estate = itSv + itEp + itNw + itCl;
+  const protectedEstate = Math.round(estate * Math.min(0.96, posture / 100 + 0.08));
+  const noDrEstate = Math.round(estate * Math.max(0.02, (82 - posture) / 280));
+  const atRiskEstate = Math.max(0, estate - protectedEstate - noDrEstate);
 
   const expScore  = Math.max(0, Math.min(100, Math.round(100 - expF * 0.4)));
   const assScore  = Math.max(0, Math.min(100, Math.round(100 - assF * 0.5)));
@@ -101,6 +118,16 @@ function build(
   return {
     id, name, lat, lng, region, businessUnit: bu,
     postureScore: posture,
+    deskAnalytics: {
+      appClassification: { class1: appClass1, class2: appClass2, class3: appClass3 },
+      vulnerabilitySeverity: { critical: expC, high: vulnHigh, medium: vulnMedium, low: vulnLow },
+      drStatus: { protected: protectedEstate, atRisk: atRiskEstate, noDr: noDrEstate },
+      compliance: {
+        frameworkA: Math.max(35, Math.min(98, posture + 4)),
+        frameworkB: Math.max(30, Math.min(97, posture - 3)),
+        frameworkC: Math.max(32, Math.min(99, posture + (posture % 7) - 4)),
+      },
+    },
     domains: {
       exposure: {
         score: expScore, trend: posture >= 80 ? 2 : -2, status: ss(expScore),

@@ -12,7 +12,7 @@ function GlassPanel({ className, variant = "default", ...props }: GlassPanelProp
     <Card
       data-glass-panel={variant}
       className={cn(
-        "glass-panel gap-0 overflow-hidden rounded-[12px] p-0 text-[var(--text-primary)]",
+        "glass-panel !gap-0 !overflow-hidden !rounded-[12px] !p-0 text-[var(--text-primary)]",
         variant === "left" && "glass-panel-left",
         className
       )}

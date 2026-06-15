@@ -12,8 +12,7 @@ import SharePanel from '@/components/SharePanel';
 import ViewPresets from '@/components/ViewPresets';
 import KeyboardShortcuts from '@/components/KeyboardShortcuts';
 import GlobalStatusBar from '@/components/GlobalStatusBar';
-import LiveAlerts from '@/components/LiveAlerts';
-import SiteDetailPanel from '@/components/SiteDetailPanel';
+import DeskAnalyticsPanels from '@/components/DeskAnalyticsPanels';
 import { DEFAULT_ACTIVE_LAYERS } from '@/data/layerMap';
 import { MASTER_SITES } from '@/data/sites';
 import type { SiteRecord } from '@/data/sites';
@@ -80,8 +79,8 @@ export default function Dashboard() {
   const [regionDossier, setRegionDossier] = useState<any>(null);
   const [dossierLoading, setDossierLoading] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
-  const [showLayers, setShowLayers] = useState(true);
-  const [showIntel, setShowIntel] = useState(true);
+  const [, setShowLayers] = useState(true);
+  const [, setShowIntel] = useState(true);
   const [mobilePanel, setMobilePanel] = useState<'layers'|'intel'|'search'|null>(null);
   const [mapProjection, setMapProjection] = useState<'globe'|'mercator'>('globe');
   const [mapStyle, setMapStyle] = useState<'dark'|'satellite'>('dark');
@@ -424,7 +423,7 @@ export default function Dashboard() {
       {/* ── MAP VIEW CONTROLS ── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 3.5 }}
-        className="absolute bottom-[75px] md:bottom-6 left-3 md:left-[315px] z-[200] flex items-center gap-2 pointer-events-none"
+        className="absolute bottom-[75px] md:bottom-6 left-3 md:left-[355px] z-[200] flex items-center gap-2 pointer-events-none"
       >
         <button
           onClick={() => setMapProjection(p => p === 'globe' ? 'mercator' : 'globe')}
@@ -531,75 +530,14 @@ export default function Dashboard() {
       )}
 
       {/* ── LEFT HUD (desktop) ── */}
-      <div className="desktop-panel absolute left-5 top-16 bottom-12 w-72 flex flex-col gap-3 z-[200] pointer-events-none overflow-y-auto styled-scrollbar pr-1">
-        {showLayers && (
-          <>
-            <LayerPanel data={data} activeLayers={activeLayers} setActiveLayers={setActiveLayers} selectedSite={selectedSite} />
-            {/* Security Domain KPI summary — re-scopes to selected site */}
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }} className="glass-panel glass-panel-left px-3 py-2.5 pointer-events-auto">
-              {selectedSite && (
-                <div className="text-[12px] font-mono text-[var(--cyan-primary)] tracking-widest text-center mb-1.5 opacity-70">
-                  SITE: {selectedSite.name.toUpperCase()}
-                </div>
-              )}
-              <div className="grid grid-cols-5 gap-2 text-center">
-                <div>
-                  <div className="hud-label">FINDINGS</div>
-                  <div className="hud-value text-[12px] animate-data-pulse" style={{ color: 'var(--accent-primary)' }}>
-                    {selectedSite ? selectedSite.domains.exposure.findings : (data.exposure_sites?.length||0).toLocaleString()}
-                  </div>
-                </div>
-                <div>
-                  <div className="hud-label">APPS</div>
-                  <div className="hud-value text-[12px]">
-                    {selectedSite ? selectedSite.domains.app_assurance.findings : (data.assurance_events?.length||0).toLocaleString()}
-                  </div>
-                </div>
-                <div>
-                  <div className="hud-label">ASSETS</div>
-                  <div className="hud-value text-[12px]" style={{ color: 'var(--status-healthy)' }}>
-                    {selectedSite
-                      ? (selectedSite.domains.it_assets.servers + selectedSite.domains.it_assets.endpoints + selectedSite.domains.it_assets.network + selectedSite.domains.it_assets.cloud + selectedSite.domains.ot_assets.plcs + selectedSite.domains.ot_assets.hmis + selectedSite.domains.ot_assets.scada).toLocaleString()
-                      : ((data.it_assets?.length||0)+(data.ot_assets?.length||0)).toLocaleString()}
-                  </div>
-                </div>
-                <div>
-                  <div className="hud-label">CAMPAIGNS</div>
-                  <div className="hud-value text-[12px]" style={{ color: 'var(--accent-primary)' }}>
-                    {selectedSite ? selectedSite.domains.sim_campaigns.sent : (data.campaign_events?.length||0).toLocaleString()}
-                  </div>
-                </div>
-                <div>
-                  <div className="hud-label">ACCESS</div>
-                  <div className="hud-value text-[12px]" style={{ color: 'var(--status-watch)' }}>
-                    {selectedSite ? selectedSite.domains.access_recert.overdue : (data.access_events?.length||0).toLocaleString()}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-            <ViewPresets onNavigate={(lat, lng, zoom) => { setFlyToLocation({ lat, lng, ts: Date.now() }); setMapView(v => ({ ...v, zoom })); }} />
-          </>
-        )}
-        {showIntel && <IntelFeed data={data} onLocate={(lat, lng) => setFlyToLocation({ lat, lng, ts: Date.now() })} />}
+      <div className="desktop-panel absolute left-5 top-16 bottom-12 w-[320px] flex flex-col gap-3 z-[200] pointer-events-none overflow-y-auto styled-scrollbar pr-1">
+        <DeskAnalyticsPanels side="left" selectedSite={selectedSite} />
       </div>
 
       {/* ── RIGHT HUD (desktop) ── */}
-      {!selectedSite && (
-        <div className="desktop-panel absolute right-5 top-16 bottom-12 w-80 flex flex-col gap-3 z-[200] pointer-events-auto overflow-y-auto styled-scrollbar pr-1">
-          <div className="flex gap-2 items-start">
-            <div className="flex-1"><SearchBar onLocate={(lat, lng) => setFlyToLocation({ lat, lng, ts: Date.now() })} /></div>
-            <div className="relative"><SharePanel mapView={mapView} activeLayers={activeLayers} mouseCoords={mouseCoords} /></div>
-          </div>
-          <LiveAlerts data={data} onLocate={(lat, lng) => setFlyToLocation({ lat, lng, ts: Date.now() })} onWatchFeed={() => {}} />
-        </div>
-      )}
-
-      {/* ── SITE DETAIL PANEL (desktop) — only right-side panel while selected ── */}
-      {selectedSite && (
-        <div className="desktop-panel absolute right-5 top-16 bottom-12 w-80 z-[350] pointer-events-none">
-          <SiteDetailPanel site={selectedSite} onClose={() => setSelectedSiteId(null)} />
-        </div>
-      )}
+      <div className="desktop-panel absolute right-5 top-16 bottom-12 w-[320px] flex flex-col gap-3 z-[200] pointer-events-none overflow-y-auto styled-scrollbar pr-1">
+        <DeskAnalyticsPanels side="right" selectedSite={selectedSite} />
+      </div>
 
       {/* ═══ MOBILE UI ═══ */}
       {isMobile && (

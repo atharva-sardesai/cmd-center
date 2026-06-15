@@ -99,14 +99,12 @@ function TrendGlyph({ trend }: { trend: number }) {
 
 function BreakdownCell({ name, value, status }: { name: string; value: string; status: StatusLevel }) {
   return (
-    <div className="grid min-h-[62px] grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-1 rounded-lg border border-[var(--border-hairline)] bg-white/[0.02] px-4 py-3">
-      <span className="row-span-2 h-2 w-2 flex-shrink-0 rounded-full" style={{ backgroundColor: STATUS_COLOR[status] }} />
-      <div className="min-w-0 truncate text-[14px] font-normal text-[var(--text-secondary)]">
-        {name}
+    <div className="flex h-10 items-center gap-2 rounded-lg border border-[var(--border-hairline)] bg-white/[0.02] px-4 py-2">
+      <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ backgroundColor: STATUS_COLOR[status] }} />
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-[14px] font-normal text-[var(--text-secondary)]">{name}</div>
       </div>
-      <div className="min-w-0 truncate font-mono text-[14px] font-normal tabular-nums text-[var(--text-secondary)]">
-        {value}
-      </div>
+      <div className="font-mono text-[14px] font-normal tabular-nums text-[var(--text-secondary)]">{value}</div>
     </div>
   );
 }
