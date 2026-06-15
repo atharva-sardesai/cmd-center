@@ -18,9 +18,9 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { Activity, Bell, Cpu, MapPin, Server, Shield, TrendingUp, Users } from 'lucide-react';
+import { Activity, Bell, Cpu, Server, Shield, TrendingUp, Users } from 'lucide-react';
+import AnalyticsMapChrome from '@/components/AnalyticsMapChrome';
 import CommandMap from '@/components/CommandMap';
-import SiteDetailPanel from '@/components/SiteDetailPanel';
 import { GlassPanel } from '@/components/ui/glass-panel';
 import { ALL_LAYERS } from '@/data/layerMap';
 import { MASTER_SITES, SITE_BY_ID, type SevLevel, type SiteRecord, type StatusLevel } from '@/data/sites';
@@ -136,23 +136,6 @@ function avg(values: number[]) {
 
 function sumSites(sites: SiteRecord[], select: (site: SiteRecord) => number) {
   return sites.reduce((sum, site) => sum + select(site), 0);
-}
-
-function getStatusCounts(sites: SiteRecord[]) {
-  return sites.reduce((counts, site) => {
-    counts[site.domains.posture_index.status] += 1;
-    return counts;
-  }, { HEALTHY: 0, WATCH: 0, CRITICAL: 0 } as Record<StatusLevel, number>);
-}
-
-function getOpenCriticals(sites: SiteRecord[]) {
-  return sumSites(sites, site => site.domains.exposure.criticals + site.domains.access_recert.overdue);
-}
-
-function getRecentEvents(sites: SiteRecord[]) {
-  return sites
-    .flatMap(site => site.recentActivity.map(activity => ({ ...activity, site: site.name })))
-    .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 }
 
 function WallViewFrame({ title, kicker, filters, slot, hero, children }: {
@@ -559,16 +542,8 @@ function trendPoints(filters: WallFilters) {
   });
 }
 
-export function MapWallView({ filters, slot, mode = 'display', onDraftSiteSelect, onDraftSiteClear }: WallViewProps) {
+export function MapWallView({ filters, mode = 'display', onDraftSiteSelect }: WallViewProps) {
   const selected = filters.selectedSiteId ? SITE_BY_ID.get(filters.selectedSiteId) : null;
-  const scopedSites = getScopedSites(filters);
-  const statusCounts = getStatusCounts(scopedSites);
-  const criticals = getOpenCriticals(scopedSites);
-  const posture = avg(scopedSites.map(site => site.postureScore));
-  const rankedSites = [...scopedSites]
-    .sort((a, b) => a.postureScore - b.postureScore)
-    .slice(0, 7);
-  const recentEvents = getRecentEvents(scopedSites).slice(0, 6);
   const activeLayers = Object.fromEntries(ALL_LAYERS.map(layer => [layer.key, domainActive(filters, layer.key)]));
   const data = {
     exposure_sites: [],
@@ -603,123 +578,8 @@ export function MapWallView({ filters, slot, mode = 'display', onDraftSiteSelect
           onSiteClick={mode === 'control' ? onDraftSiteSelect : undefined}
         />
       </MapErrorBoundary>
-      <div className={`pointer-events-none absolute left-5 right-5 top-5 z-20 grid gap-4 ${selected ? 'grid-cols-[320px_1fr]' : 'grid-cols-[320px_1fr_320px]'}`}>
-        <GlassPanel className="pointer-events-auto max-h-[calc(100vh-40px)] overflow-hidden p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="font-mono text-[12px] uppercase tracking-[0.16em] text-[var(--sc-primary)]">Slot {slot}</p>
-              <h1 className="mt-2 text-[26px] font-semibold leading-none text-[var(--sc-text-strong)]">Command Map</h1>
-              <p className="mt-2 text-[14px] font-semibold text-[var(--sc-text-strong)]">{formatScope(filters)}</p>
-              <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">
-                {filters.timeRange} · {(filters.activeDomains.length || ALL_LAYERS.length)} domains active
-              </p>
-              <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--sc-text-subtle)]">DEMO DATA</p>
-            </div>
-            <MapPin className="h-6 w-6 text-[var(--sc-primary)]" />
-          </div>
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            <MiniMetric label="Sites" value={scopedSites.length} />
-            <MiniMetric label="Posture" value={posture} tone={posture >= 80 ? 'ok' : posture >= 65 ? 'watch' : 'critical'} />
-            <MiniMetric label="Critical" value={statusCounts.CRITICAL} tone="critical" />
-            <MiniMetric label="Open Risk" value={criticals} tone={criticals > 40 ? 'critical' : 'watch'} />
-          </div>
-          <div className="mt-4 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/25 p-3">
-            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--sc-text-muted)]">Marker Legend</p>
-            <div className="mt-3 grid gap-2 text-[12px]">
-              <LegendItem color="var(--sc-status-ok)" label={`Healthy · ${statusCounts.HEALTHY}`} />
-              <LegendItem color="var(--sc-status-watch)" label={`Watch · ${statusCounts.WATCH}`} />
-              <LegendItem color="var(--sc-status-critical)" label={`Critical · ${statusCounts.CRITICAL}`} />
-            </div>
-          </div>
-        </GlassPanel>
-
-        <div className="pointer-events-none" />
-
-        {!selected && (
-          <GlassPanel className="pointer-events-auto max-h-[calc(100vh-40px)] overflow-hidden p-4">
-              <div className="rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/25 p-3">
-                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--sc-primary)]">Live Activity</p>
-                <div className="mt-2 flex flex-col gap-2">
-                  {recentEvents.slice(0, 4).map(event => (
-                    <div key={`${event.site}-${event.title}-${event.time}`} className="grid grid-cols-[44px_1fr] gap-2 text-[12px]">
-                      <span className="font-mono text-[var(--sc-text-muted)]">{formatClockTime(event.time)}</span>
-                      <span className="truncate text-[var(--sc-text)]">{event.site}: {event.title}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--sc-primary)]">Lowest Posture Sites</p>
-              <div className="mt-3 max-h-[42vh] overflow-auto pr-1">
-                <div className="flex flex-col gap-2">
-                  {rankedSites.map(site => (
-                    <div key={site.id} className="grid grid-cols-[1fr_54px] items-center gap-2 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/25 px-3 py-2">
-                      <div className="min-w-0">
-                        <p className="truncate text-[14px] font-semibold text-[var(--sc-text-strong)]">{site.name}</p>
-                        <p className="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">
-                          {site.region} · {site.domains.exposure.criticals} criticals · {site.domains.ot_assets.plcs} PLCs
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-end gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full" style={{ background: STATUS_COLOR[site.domains.posture_index.status] }} />
-                        <span className="font-mono text-[18px] font-semibold" style={{ color: STATUS_COLOR[site.domains.posture_index.status] }}>{site.postureScore}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-          </GlassPanel>
-        )}
-      </div>
-      {selected && (
-        <div className="pointer-events-auto absolute bottom-5 right-5 top-5 z-40 w-80">
-          <SiteDetailPanel
-            site={selected}
-            onClose={mode === 'control' ? (onDraftSiteClear ?? (() => undefined)) : (() => undefined)}
-          />
-        </div>
-      )}
-      <div className={`pointer-events-none absolute bottom-5 left-[345px] z-20 grid grid-cols-4 gap-3 ${selected ? 'right-[365px]' : 'right-[345px]'}`}>
-        <MiniMetric label="Healthy" value={statusCounts.HEALTHY} tone="ok" />
-        <MiniMetric label="Watch" value={statusCounts.WATCH} tone="watch" />
-        <MiniMetric label="Critical" value={statusCounts.CRITICAL} tone="critical" />
-        <MiniMetric label="Time Range" value={filters.timeRange} />
-      </div>
+      <AnalyticsMapChrome selectedSite={selected} />
     </section>
-  );
-}
-
-function MiniMetric({ label, value, tone = 'primary' }: {
-  label: string;
-  value: string | number;
-  tone?: 'primary' | 'ok' | 'watch' | 'critical' | 'neutral';
-}) {
-  const color = tone === 'ok'
-    ? 'var(--sc-status-ok)'
-    : tone === 'watch'
-      ? 'var(--sc-status-watch)'
-      : tone === 'critical'
-        ? 'var(--sc-status-critical)'
-        : tone === 'neutral'
-          ? 'var(--sc-status-neutral)'
-          : 'var(--sc-primary)';
-
-  return (
-    <div className="rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/45 px-3 py-2 backdrop-blur-sm">
-      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">{label}</p>
-      <p className="mt-1 text-[22px] font-semibold leading-none" style={{ color }}>{value}</p>
-    </div>
-  );
-}
-
-function LegendItem({ color, label }: { color: string; label: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="flex items-center gap-2 text-[var(--sc-text)]">
-        <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} />
-        {label}
-      </span>
-      <span className="h-px flex-1 bg-[var(--sc-border)]" />
-    </div>
   );
 }
 
