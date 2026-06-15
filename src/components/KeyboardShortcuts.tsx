@@ -45,8 +45,8 @@ export default function KeyboardShortcuts() {
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Keyboard className="w-4 h-4 text-[var(--gold-primary)]" />
-                <span className="text-sm font-mono font-bold text-[var(--text-heading)] tracking-wider">SHORTCUTS</span>
+                <Keyboard className="w-4 h-4 text-[var(--accent-primary)]" />
+                <span className="text-[14px] font-mono font-bold text-[var(--text-heading)] tracking-wider">SHORTCUTS</span>
               </div>
               <button onClick={() => setIsOpen(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                 <X className="w-4 h-4" />
@@ -55,14 +55,14 @@ export default function KeyboardShortcuts() {
             <div className="space-y-2">
               {SHORTCUTS.map(s => (
                 <div key={s.key} className="flex items-center justify-between">
-                  <span className="text-[9px] font-mono text-[var(--text-secondary)]">{s.desc}</span>
-                  <kbd className="px-2 py-0.5 rounded text-[8px] font-mono font-bold text-[var(--gold-primary)] bg-[var(--bg-void)] border border-[var(--border-primary)]">
+                  <span className="text-[12px] font-mono text-[var(--text-secondary)]">{s.desc}</span>
+                  <kbd className="px-2 py-0.5 rounded text-[12px] font-mono font-bold text-[var(--accent-primary)] bg-[var(--bg-void)] border border-[var(--border-primary)]">
                     {s.key}
                   </kbd>
                 </div>
               ))}
             </div>
-            <div className="mt-4 text-center text-[7px] font-mono text-[var(--text-muted)] tracking-widest">
+            <div className="mt-4 text-center text-[12px] font-mono text-[var(--text-muted)] tracking-widest">
               PRESS [?] OR [ESC] TO CLOSE
             </div>
           </motion.div>
