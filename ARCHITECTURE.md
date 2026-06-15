@@ -20,7 +20,7 @@ Versions are from `package.json`.
 | Language | TypeScript | `^5`; `tsconfig.json` has `strict: true` |
 | React | `react`, `react-dom` | `19.2.4` |
 | Map rendering | `maplibre-gl` | `^5.24.0`; dynamically imported client map component |
-| Charts | `recharts` | `^3.6.0`; desk-only analytics panels |
+| Charts | `recharts` | `^3.6.0`; shared map analytics panels |
 | Animation | `framer-motion` | `^12.38.0` |
 | UI primitives | shadcn/Radix-style components | `radix-ui ^1.4.3`, `shadcn ^4.8.2`, local `src/components/ui/*` |
 | Styling | Tailwind CSS v4 | `tailwindcss ^4`, `@tailwindcss/postcss ^4`, `tw-animate-css ^1.4.0` |
@@ -402,7 +402,9 @@ None exist. There is no `/api/wall/stream`, no `/api/wall/state/filters`, and no
 | `src/app/globals.css` | Tailwind imports, design tokens, palette, glass-panel CSS, global HUD/map styles |
 | `src/app/api/*/route.ts` | API-route seam returning domain/supporting JSON |
 | `src/components/CommandMap.tsx` | MapLibre map and all GeoJSON source/layer rendering |
-| `src/components/DeskAnalyticsPanels.tsx` | Desk-only Recharts analytics columns, scoped to the selected site or aggregated enterprise-wide |
+| `src/components/AnalyticsMapChrome.tsx` | Shared six-panel analytics framing and centered map scope label |
+| `src/components/DeskAnalyticsPanels.tsx` | Recharts analytics columns shown for a selected site's detailed metrics |
+| `src/components/EnterpriseOverviewPanels.tsx` | Purpose-built whole-program overview shown when no site is selected |
 | `src/components/LayerPanel.tsx` | Domain layer toggle panel |
 | `src/components/SiteDetailPanel.tsx` | Selected-site details, domain breakdown, asset tabs, recent activity, live alerts |
 | `src/components/GlobalStatusBar.tsx` | Bottom global metrics strip |

@@ -12,13 +12,13 @@ import SharePanel from '@/components/SharePanel';
 import ViewPresets from '@/components/ViewPresets';
 import KeyboardShortcuts from '@/components/KeyboardShortcuts';
 import GlobalStatusBar from '@/components/GlobalStatusBar';
-import DeskAnalyticsPanels from '@/components/DeskAnalyticsPanels';
 import { DEFAULT_ACTIVE_LAYERS } from '@/data/layerMap';
 import { MASTER_SITES } from '@/data/sites';
 import type { SiteRecord } from '@/data/sites';
 
 const CommandMap = dynamic(() => import('@/components/CommandMap'), { ssr: false });
 const LayerPanel = dynamic(() => import('@/components/LayerPanel'));
+const AnalyticsMapChrome = dynamic(() => import('@/components/AnalyticsMapChrome'), { ssr: false });
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -472,28 +472,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <AnimatePresence>
-          {selectedSite && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
-              className="pointer-events-auto flex items-center gap-2 rounded-full border border-[var(--accent-primary)] bg-[var(--accent-primary)]/[0.08] px-3 py-1"
-            >
-              <span className="text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--text-tertiary)]">Viewing</span>
-              <span className="text-[14px] font-normal text-[var(--text-primary)]">{selectedSite.name}</span>
-              <button
-                onClick={() => setSelectedSiteId(null)}
-                className="text-[var(--text-tertiary)] transition-colors hover:text-[var(--text-primary)]"
-                aria-label="Clear selected site"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         <div className="hidden items-center gap-6 lg:flex font-mono text-[14px] font-normal tabular-nums text-[var(--text-secondary)]">
           <ZuluClock />
           <span className="flex items-center gap-1">
@@ -529,15 +507,8 @@ export default function Dashboard() {
         </motion.div>
       )}
 
-      {/* ── LEFT HUD (desktop) ── */}
-      <div className="desktop-panel absolute left-5 top-16 bottom-12 w-[320px] flex flex-col gap-3 z-[200] pointer-events-none overflow-y-auto styled-scrollbar pr-1">
-        <DeskAnalyticsPanels side="left" selectedSite={selectedSite} />
-      </div>
-
-      {/* ── RIGHT HUD (desktop) ── */}
-      <div className="desktop-panel absolute right-5 top-16 bottom-12 w-[320px] flex flex-col gap-3 z-[200] pointer-events-none overflow-y-auto styled-scrollbar pr-1">
-        <DeskAnalyticsPanels side="right" selectedSite={selectedSite} />
-      </div>
+      {/* ── SHARED MAP ANALYTICS CHROME ── */}
+      <AnalyticsMapChrome selectedSite={selectedSite} />
 
       {/* ═══ MOBILE UI ═══ */}
       {isMobile && (

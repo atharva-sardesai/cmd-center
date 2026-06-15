@@ -19,7 +19,7 @@ import type { SiteRecord, StatusLevel } from '@/data/sites';
 type MetricRecord = Record<string, number>;
 type Side = 'left' | 'right';
 
-const COLORS = {
+export const ANALYTICS_COLORS = {
   accent: 'var(--accent-primary)',
   accentDim: 'var(--accent-primary-dim)',
   healthy: 'var(--status-healthy)',
@@ -30,9 +30,9 @@ const COLORS = {
 };
 
 const STATUS_COLOR: Record<StatusLevel, string> = {
-  HEALTHY: COLORS.healthy,
-  WATCH: COLORS.watch,
-  CRITICAL: COLORS.critical,
+  HEALTHY: ANALYTICS_COLORS.healthy,
+  WATCH: ANALYTICS_COLORS.watch,
+  CRITICAL: ANALYTICS_COLORS.critical,
 };
 
 function sumRecords(records: MetricRecord[]) {
@@ -57,7 +57,6 @@ function scopedAnalytics(selectedSite: SiteRecord | null) {
     ? selectedSite.postureScore
     : Math.round(sites.reduce((sum, site) => sum + site.postureScore, 0) / sites.length);
   return {
-    scope: selectedSite?.name ?? 'Enterprise-wide',
     appClassification: sumRecords(sites.map(site => site.deskAnalytics.appClassification)),
     vulnerabilitySeverity: sumRecords(sites.map(site => site.deskAnalytics.vulnerabilitySeverity)),
     devices: sumRecords(sites.map(site => site.domains.it_assets)),
@@ -77,29 +76,26 @@ function scopedAnalytics(selectedSite: SiteRecord | null) {
   };
 }
 
-function PanelTitle({ title, scope }: { title: string; scope: string }) {
+function PanelTitle({ title }: { title: string }) {
   return (
-    <div className="flex items-start justify-between gap-3">
+    <div className="flex items-start">
       <h2 className="text-[18px] font-medium text-[var(--text-primary)]">{title}</h2>
-      <span className="max-w-28 truncate rounded-full border border-[var(--accent-primary)]/30 bg-[var(--accent-primary)]/[0.08] px-2 py-1 text-[12px] font-medium uppercase tracking-[0.05em] text-[var(--accent-primary)]">
-        {scope}
-      </span>
     </div>
   );
 }
 
-function ChartPanel({ title, scope, children }: { title: string; scope: string; children: ReactNode }) {
+export function AnalyticsPanel({ title, children }: { title: string; children: ReactNode }) {
   return (
     <GlassPanel className="pointer-events-auto min-h-0 flex-1">
       <div className="flex h-full min-h-[220px] flex-col gap-3 p-4">
-        <PanelTitle title={title} scope={scope} />
+        <PanelTitle title={title} />
         {children}
       </div>
     </GlassPanel>
   );
 }
 
-function Donut({
+export function AnalyticsDonut({
   data,
   colors,
   totalLabel,
@@ -145,10 +141,10 @@ function LeftPanels({ selectedSite }: { selectedSite: SiteRecord | null }) {
     { name: 'Class 3', value: analytics.appClassification.class3 },
   ];
   const vulnerabilities = [
-    { name: 'Critical', value: analytics.vulnerabilitySeverity.critical, color: COLORS.critical },
-    { name: 'High', value: analytics.vulnerabilitySeverity.high, color: COLORS.watch },
-    { name: 'Medium', value: analytics.vulnerabilitySeverity.medium, color: COLORS.neutral },
-    { name: 'Low', value: analytics.vulnerabilitySeverity.low, color: COLORS.tertiary },
+    { name: 'Critical', value: analytics.vulnerabilitySeverity.critical, color: ANALYTICS_COLORS.critical },
+    { name: 'High', value: analytics.vulnerabilitySeverity.high, color: ANALYTICS_COLORS.watch },
+    { name: 'Medium', value: analytics.vulnerabilitySeverity.medium, color: ANALYTICS_COLORS.neutral },
+    { name: 'Low', value: analytics.vulnerabilitySeverity.low, color: ANALYTICS_COLORS.tertiary },
   ];
   const devices = [
     { name: 'Servers', value: analytics.devices.servers },
@@ -159,10 +155,10 @@ function LeftPanels({ selectedSite }: { selectedSite: SiteRecord | null }) {
 
   return (
     <>
-      <ChartPanel title="Application Classification" scope={analytics.scope}>
-        <Donut data={apps} colors={[COLORS.accent, COLORS.accentDim, COLORS.neutral]} totalLabel="Apps" />
-      </ChartPanel>
-      <ChartPanel title="Vulnerability Breakdown" scope={analytics.scope}>
+      <AnalyticsPanel title="Application Classification">
+        <AnalyticsDonut data={apps} colors={[ANALYTICS_COLORS.accent, ANALYTICS_COLORS.accentDim, ANALYTICS_COLORS.neutral]} totalLabel="Apps" />
+      </AnalyticsPanel>
+      <AnalyticsPanel title="Vulnerability Breakdown">
         <div className="min-h-0 flex-1">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={vulnerabilities} margin={{ top: 12, right: 4, bottom: 0, left: -24 }}>
@@ -174,10 +170,10 @@ function LeftPanels({ selectedSite }: { selectedSite: SiteRecord | null }) {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </ChartPanel>
-      <ChartPanel title="IT Inventory / Device Segregation" scope={analytics.scope}>
-        <Donut data={devices} colors={[COLORS.accent, COLORS.healthy, COLORS.watch, COLORS.neutral]} totalLabel="Devices" />
-      </ChartPanel>
+      </AnalyticsPanel>
+      <AnalyticsPanel title="IT Inventory / Device Segregation">
+        <AnalyticsDonut data={devices} colors={[ANALYTICS_COLORS.accent, ANALYTICS_COLORS.healthy, ANALYTICS_COLORS.watch, ANALYTICS_COLORS.neutral]} totalLabel="Devices" />
+      </AnalyticsPanel>
     </>
   );
 }
@@ -188,7 +184,7 @@ function PostureHero({ selectedSite }: { selectedSite: SiteRecord | null }) {
   const color = STATUS_COLOR[posture.status];
   const Trend = posture.trend > 0 ? TrendingUp : posture.trend < 0 ? TrendingDown : Minus;
   return (
-    <ChartPanel title="Security Posture" scope={analytics.scope}>
+    <AnalyticsPanel title="Security Posture">
       <div className="flex min-h-0 flex-1 flex-col justify-center rounded-xl border border-[var(--border-hairline)] bg-white/[0.02] p-4">
         <div className="flex items-end gap-4">
           <span className="font-mono text-[80px] font-light leading-none tracking-[-0.06em] tabular-nums" style={{ color }}>
@@ -203,16 +199,16 @@ function PostureHero({ selectedSite }: { selectedSite: SiteRecord | null }) {
           {criticalIssues > 0 ? `${criticalIssues} critical issues require attention` : 'Security posture is healthy'}
         </p>
       </div>
-    </ChartPanel>
+    </AnalyticsPanel>
   );
 }
 
 function RightPanels({ selectedSite }: { selectedSite: SiteRecord | null }) {
   const analytics = scopedAnalytics(selectedSite);
   const dr = [
-    { name: 'Protected', value: analytics.drStatus.protected, color: COLORS.healthy },
-    { name: 'At-Risk', value: analytics.drStatus.atRisk, color: COLORS.watch },
-    { name: 'No-DR', value: analytics.drStatus.noDr, color: COLORS.critical },
+    { name: 'Protected', value: analytics.drStatus.protected, color: ANALYTICS_COLORS.healthy },
+    { name: 'At-Risk', value: analytics.drStatus.atRisk, color: ANALYTICS_COLORS.watch },
+    { name: 'No-DR', value: analytics.drStatus.noDr, color: ANALYTICS_COLORS.critical },
   ];
   const drTotal = dr.reduce((sum, item) => sum + item.value, 0);
   const protectedPercent = Math.round((analytics.drStatus.protected / drTotal) * 100);
@@ -225,7 +221,7 @@ function RightPanels({ selectedSite }: { selectedSite: SiteRecord | null }) {
   return (
     <>
       <PostureHero selectedSite={selectedSite} />
-      <ChartPanel title="DR Status" scope={analytics.scope}>
+      <AnalyticsPanel title="DR Status">
         <div className="flex min-h-0 flex-1 flex-col justify-center gap-4">
           <div className="flex items-baseline gap-2">
             <span className="font-mono text-[32px] font-medium tabular-nums text-[var(--status-healthy)]">{protectedPercent}%</span>
@@ -246,11 +242,11 @@ function RightPanels({ selectedSite }: { selectedSite: SiteRecord | null }) {
             ))}
           </div>
         </div>
-      </ChartPanel>
-      <ChartPanel title="Compliance Status" scope={analytics.scope}>
+      </AnalyticsPanel>
+      <AnalyticsPanel title="Compliance Status">
         <div className="flex min-h-0 flex-1 flex-col justify-center gap-4">
           {compliance.map(item => {
-            const color = item.value >= 80 ? COLORS.healthy : item.value >= 65 ? COLORS.watch : COLORS.critical;
+            const color = item.value >= 80 ? ANALYTICS_COLORS.healthy : item.value >= 65 ? ANALYTICS_COLORS.watch : ANALYTICS_COLORS.critical;
             return (
               <div key={item.name}>
                 <div className="mb-2 flex items-center justify-between gap-3">
@@ -264,7 +260,7 @@ function RightPanels({ selectedSite }: { selectedSite: SiteRecord | null }) {
             );
           })}
         </div>
-      </ChartPanel>
+      </AnalyticsPanel>
     </>
   );
 }
