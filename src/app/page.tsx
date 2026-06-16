@@ -15,6 +15,7 @@ import GlobalStatusBar from '@/components/GlobalStatusBar';
 import { DEFAULT_ACTIVE_LAYERS } from '@/data/layerMap';
 import { MASTER_SITES } from '@/data/sites';
 import type { SiteRecord } from '@/data/sites';
+import { INDIA_MAP_VIEW } from '@/lib/mapDefaults';
 
 const CommandMap = dynamic(() => import('@/components/CommandMap'), { ssr: false });
 const LayerPanel = dynamic(() => import('@/components/LayerPanel'));
@@ -73,7 +74,7 @@ export default function Dashboard() {
 
   const [backendStatus, setBackendStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
   const [mapView, setMapView] = useState({ zoom: 2.0, latitude: 20 });
-  const [flyToLocation, setFlyToLocation] = useState<{ lat: number; lng: number; ts: number } | null>(null);
+  const [flyToLocation, setFlyToLocation] = useState<{ lat: number; lng: number; ts: number; zoom?: number } | null>(null);
   const [mouseCoords, setMouseCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [, setLocationLabel] = useState('');
   const [regionDossier, setRegionDossier] = useState<any>(null);
@@ -144,14 +145,18 @@ export default function Dashboard() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (['INPUT', 'TEXTAREA'].includes((e.target as Element)?.tagName)) return;
-      if (e.key === 'Escape') { setSelectedSiteId(null); return; }
+      if (e.key === 'Escape') {
+        setSelectedSiteId(null);
+        setFlyToLocation({ ...INDIA_MAP_VIEW, ts: Date.now() });
+        return;
+      }
       if (e.key === 'f' && !e.ctrlKey) {
         if (document.fullscreenElement) document.exitFullscreen();
         else document.documentElement.requestFullscreen();
       }
       if (e.key === 'l') setShowLayers(p => !p);
       if (e.key === 'i') setShowIntel(p => !p);
-      if (e.key === 'r') setFlyToLocation({ lat: 20, lng: 0, ts: Date.now() });
+      if (e.key === 'r') setFlyToLocation({ ...INDIA_MAP_VIEW, ts: Date.now() });
       if (e.key === 'g') setMapProjection(p => p === 'globe' ? 'mercator' : 'globe');
     };
     window.addEventListener('keydown', handler);

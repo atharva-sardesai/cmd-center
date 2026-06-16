@@ -28,7 +28,18 @@ export interface SiteRecord {
     exposure:           DomainData & { findings: number; criticals: number; severity: SevLevel };
     app_assurance:      DomainData & { findings: number; openTests: number };
     arch_reviews:       DomainData & { completed: number; scheduled: number; type: string };
-    dlp:                DomainData & { policies: number; incidents: number };
+    dlp:                DomainData & {
+      policies: number;
+      incidents: number;
+      blocked: number;
+      falsePositives: number;
+      escalated: number;
+      protocols: Record<'email' | 'https' | 'removable' | 'sync', number>;
+      recipientCategories: Record<'aiTools' | 'internal' | 'personalDrive' | 'vendor' | 'partner', number>;
+      workerTypes: Record<'employee' | 'contractor' | 'vendor' | 'partner', number>;
+      timeline: Array<{ label: string; alerts: number; critical: number; high: number; medium: number; low: number }>;
+      topSources: Array<{ name: string; count: number; status: StatusLevel }>;
+    };
     ot_assets:          DomainData & { plcs: number; hmis: number; scada: number };
     it_assets:          DomainData & { servers: number; endpoints: number; network: number; cloud: number };
     awareness:          DomainData & { completion_pct: number; trained: number; total: number };
@@ -75,6 +86,9 @@ function build(
   const archS    = Math.max(0, Math.round((100 - posture) / 25));
   const dlpP     = Math.round(itSv / 8) + 4;
   const dlpI     = Math.max(0, Math.round((100 - posture) / 12));
+  const dlpBlocked = Math.max(1, Math.round(dlpI * (posture >= 80 ? 0.74 : posture >= 70 ? 0.66 : 0.58)));
+  const dlpFalsePositives = Math.max(0, Math.round(dlpI * (posture >= 82 ? 0.08 : posture >= 70 ? 0.13 : 0.19)));
+  const dlpEscalated = Math.max(0, Math.round(dlpI * (posture >= 82 ? 0.12 : posture >= 70 ? 0.18 : 0.26)));
   const otH      = Math.round(otP * 0.6);
   const otS      = Math.round(otP * 0.35);
   const itEp     = Math.round(itSv * 7);
@@ -114,6 +128,48 @@ function build(
   const accScore  = Math.max(0, Math.min(100, Math.round(100 - (accOv / (accTo || 1)) * 100)));
   const govTotal  = govCo + govRD + govNC;
   const govScore  = govTotal > 0 ? Math.round((govCo / govTotal) * 100) : 80;
+  const dlpProtocols = {
+    email: Math.max(1, Math.round(dlpI * 0.35 + expC * 0.2)),
+    https: Math.max(1, Math.round(dlpI * 0.30 + itSv * 0.02)),
+    removable: Math.max(0, Math.round(dlpI * (bu === 'Manufacturing' ? 0.24 : 0.14))),
+    sync: Math.max(0, Math.round(dlpI * 0.18 + govNC * 0.1)),
+  };
+  const dlpRecipientCategories = {
+    aiTools: Math.max(0, Math.round(dlpI * (bu === 'R&D' || bu === 'Engineering' ? 0.34 : 0.18))),
+    internal: Math.max(1, Math.round(dlpI * 0.28)),
+    personalDrive: Math.max(0, Math.round(dlpI * (posture < 72 ? 0.26 : 0.14))),
+    vendor: Math.max(0, Math.round(dlpI * 0.20 + archS)),
+    partner: Math.max(0, Math.round(dlpI * 0.12 + govRD * 0.1)),
+  };
+  const dlpWorkerTypes = {
+    employee: Math.max(1, Math.round(dlpI * 0.52)),
+    contractor: Math.max(0, Math.round(dlpI * 0.24)),
+    vendor: Math.max(0, Math.round(dlpI * 0.14)),
+    partner: Math.max(0, Math.round(dlpI * 0.10)),
+  };
+  const dlpTimeline = Array.from({ length: 12 }, (_, index) => {
+    const wave = Math.max(0, Math.round(Math.sin((index + posture % 5) * 0.85) * 2));
+    const spike = index === (posture % 7) + 3 ? Math.max(2, Math.round(dlpI * 0.28)) : 0;
+    const alerts = Math.max(0, Math.round(dlpI / 3) + wave + spike - (index % 4 === 0 ? 1 : 0));
+    const critical = Math.max(0, Math.round(alerts * (posture < 70 ? 0.18 : 0.08)));
+    const high = Math.max(0, Math.round(alerts * (posture < 78 ? 0.32 : 0.22)));
+    const medium = Math.max(0, Math.round(alerts * 0.34));
+    const low = Math.max(0, alerts - critical - high - medium);
+    return {
+      label: `T-${11 - index}`,
+      alerts,
+      critical,
+      high,
+      medium,
+      low,
+    };
+  });
+  const dlpTopSources = [
+    { name: `${bu} Operations`, count: Math.max(1, Math.round(dlpI * 0.34 + expC)), status: ss(Math.max(0, dlpScore - 8)) },
+    { name: `${region} Shared Services`, count: Math.max(1, Math.round(dlpI * 0.26 + govNC)), status: ss(dlpScore) },
+    { name: 'Engineering Workspace', count: Math.max(0, Math.round(dlpI * 0.21 + archS)), status: ss(Math.min(100, dlpScore + 7)) },
+    { name: 'Partner Exchange', count: Math.max(0, Math.round(dlpI * 0.16 + govRD)), status: ss(Math.min(100, dlpScore + 12)) },
+  ];
 
   return {
     id, name, lat, lng, region, businessUnit: bu,
@@ -143,7 +199,12 @@ function build(
       },
       dlp: {
         score: dlpScore, trend: 0, status: ss(dlpScore),
-        policies: dlpP, incidents: dlpI,
+        policies: dlpP, incidents: dlpI, blocked: dlpBlocked, falsePositives: dlpFalsePositives, escalated: dlpEscalated,
+        protocols: dlpProtocols,
+        recipientCategories: dlpRecipientCategories,
+        workerTypes: dlpWorkerTypes,
+        timeline: dlpTimeline,
+        topSources: dlpTopSources,
       },
       ot_assets: {
         score: otScore, trend: -1, status: ss(otScore),
