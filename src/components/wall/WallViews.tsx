@@ -890,6 +890,393 @@ function RankedAlertList({ label, rows, total }: { label: string; rows: Array<[s
   );
 }
 
+type DlpMetricTone = 'ok' | 'watch' | 'critical' | 'neutral';
+
+function dlpMetricToneColor(tone: DlpMetricTone) {
+  return tone === 'ok'
+    ? 'var(--sc-status-ok)'
+    : tone === 'watch'
+      ? 'var(--sc-status-watch)'
+      : tone === 'critical'
+        ? 'var(--sc-status-critical)'
+        : 'var(--sc-status-neutral)';
+}
+
+function sumDlpRecord<K extends string>(sites: SiteRecord[], select: (site: SiteRecord) => Record<K, number>): Record<K, number> {
+  return sites.reduce((acc, site) => {
+    const record = select(site);
+    (Object.keys(record) as K[]).forEach(key => {
+      acc[key] = (acc[key] ?? 0) + record[key];
+    });
+    return acc;
+  }, {} as Record<K, number>);
+}
+
+function dlpTimelineLabel(index: number, range: WallFilters['timeRange']) {
+  if (range === '1h') return `${index * 5}m`;
+  if (range === '24h') return `${index * 2}h`;
+  if (range === '7d') return `D-${11 - index}`;
+  return `W-${11 - index}`;
+}
+
+function aggregateDlpTimeline(sites: SiteRecord[], range: WallFilters['timeRange']) {
+  return Array.from({ length: 12 }, (_, index) => {
+    const totals = sites.reduce((sum, site) => {
+      const point = site.domains.dlp.timeline[index] ?? { alerts: 0, critical: 0, high: 0, medium: 0, low: 0 };
+      return {
+        alerts: sum.alerts + point.alerts,
+        critical: sum.critical + point.critical,
+        high: sum.high + point.high,
+        medium: sum.medium + point.medium,
+        low: sum.low + point.low,
+      };
+    }, { alerts: 0, critical: 0, high: 0, medium: 0, low: 0 });
+
+    return {
+      label: dlpTimelineLabel(index, range),
+      ...totals,
+    };
+  });
+}
+
+function buildDlpTopSources(sites: SiteRecord[]) {
+  if (sites.length === 1) return sites[0].domains.dlp.topSources;
+
+  return sites
+    .map(site => ({
+      name: site.name,
+      count: site.domains.dlp.incidents,
+      status: site.domains.dlp.status,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 7);
+}
+
+function DlpHeadlineCard({ label, value, detail, tone }: {
+  label: string;
+  value: string | number;
+  detail: string;
+  tone: DlpMetricTone;
+}) {
+  const color = dlpMetricToneColor(tone);
+
+  return (
+    <GlassPanel className="relative min-h-[154px] overflow-hidden p-5">
+      <div className="absolute inset-y-0 left-0 w-1.5" style={{ background: color }} />
+      <p className="font-mono text-[13px] uppercase tracking-[0.16em] text-[var(--sc-text-muted)]">{label}</p>
+      <p className="mt-4 font-mono text-[50px] font-semibold leading-none" style={{ color }}>{value}</p>
+      <p className="mt-3 text-[15px] leading-snug text-[var(--sc-text-muted)]">{detail}</p>
+    </GlassPanel>
+  );
+}
+
+function DlpLegend({ items }: { items: Array<{ label: string; value: number; color: string }> }) {
+  return (
+    <div className="grid gap-2">
+      {items.map(item => (
+        <div key={item.label} className="grid grid-cols-[1fr_auto] items-center gap-3 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-3 py-2">
+          <span className="flex min-w-0 items-center gap-2 text-[15px] font-semibold text-[var(--sc-text-strong)]">
+            <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: item.color }} />
+            <span className="truncate">{item.label}</span>
+          </span>
+          <span className="font-mono text-[20px] font-semibold text-[var(--sc-text-strong)]">{item.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function DlpDashboard({ filters, slot }: WallViewProps) {
+  const sites = getScopedSites(filters);
+  const totalAlerts = sumSites(sites, site => site.domains.dlp.incidents);
+  const blocked = sumSites(sites, site => site.domains.dlp.blocked);
+  const falsePositives = sumSites(sites, site => site.domains.dlp.falsePositives);
+  const escalated = sumSites(sites, site => site.domains.dlp.escalated);
+  const falsePositiveRate = totalAlerts ? Math.round((falsePositives / totalAlerts) * 100) : 0;
+  const blockRate = totalAlerts ? Math.round((blocked / totalAlerts) * 100) : 0;
+  const escalationRate = totalAlerts ? Math.round((escalated / totalAlerts) * 100) : 0;
+  const timeline = aggregateDlpTimeline(sites, filters.timeRange);
+  const protocols = sumDlpRecord(sites, site => site.domains.dlp.protocols);
+  const recipients = sumDlpRecord(sites, site => site.domains.dlp.recipientCategories);
+  const workerTypes = sumDlpRecord(sites, site => site.domains.dlp.workerTypes);
+  const topSources = buildDlpTopSources(sites);
+  const protocolRows = [
+    { label: 'Email', value: protocols.email ?? 0, color: 'var(--sc-primary)' },
+    { label: 'HTTPS', value: protocols.https ?? 0, color: 'var(--sc-status-ok)' },
+    { label: 'Removable Device', value: protocols.removable ?? 0, color: 'var(--sc-status-watch)' },
+    { label: 'Cloud Sync', value: protocols.sync ?? 0, color: 'var(--sc-status-neutral)' },
+  ];
+  const recipientRows = [
+    { label: 'AI Tools', value: recipients.aiTools ?? 0 },
+    { label: 'Personal Drive', value: recipients.personalDrive ?? 0 },
+    { label: 'Vendor', value: recipients.vendor ?? 0 },
+    { label: 'Internal', value: recipients.internal ?? 0 },
+    { label: 'Partner', value: recipients.partner ?? 0 },
+  ].sort((a, b) => b.value - a.value);
+  const workerRows = [
+    { label: 'Employee', value: workerTypes.employee ?? 0, color: 'var(--sc-primary)' },
+    { label: 'Contractor', value: workerTypes.contractor ?? 0, color: 'var(--sc-status-watch)' },
+    { label: 'Vendor', value: workerTypes.vendor ?? 0, color: 'var(--sc-status-neutral)' },
+    { label: 'Partner', value: workerTypes.partner ?? 0, color: 'var(--sc-status-ok)' },
+  ];
+  const quiet = totalAlerts === 0;
+
+  return (
+    <WallViewFrame
+      title="DLP Dashboard"
+      kicker="Data-loss prevention posture"
+      filters={filters}
+      slot={slot}
+      hero={(
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+          <DlpHeadlineCard label="Total alerts" value={totalAlerts} detail={`${sites.length} scoped ${sites.length === 1 ? 'site' : 'sites'} · ${filters.timeRange} wall range`} tone={totalAlerts > 24 ? 'watch' : 'neutral'} />
+          <DlpHeadlineCard label="Blocked / prevented" value={blocked} detail={`${blockRate}% prevention rate across active policies`} tone={blockRate >= 65 ? 'ok' : blockRate >= 45 ? 'watch' : 'critical'} />
+          <DlpHeadlineCard label="False positives" value={falsePositives} detail={`${falsePositiveRate}% review noise in the current queue`} tone={falsePositiveRate > 18 ? 'critical' : falsePositiveRate > 11 ? 'watch' : 'ok'} />
+          <DlpHeadlineCard label="Escalated" value={escalated} detail={`${escalationRate}% routed to response ownership`} tone={escalationRate > 24 ? 'critical' : escalationRate > 14 ? 'watch' : 'neutral'} />
+        </div>
+      )}
+    >
+      {quiet ? (
+        <GlassPanel className="grid h-full place-items-center p-10 text-center">
+          <Shield className="mx-auto h-20 w-20 text-[var(--sc-status-ok)]" />
+          <p className="mt-8 text-[34px] font-semibold text-[var(--sc-text-strong)]">No active DLP alerts</p>
+          <p className="mt-3 text-[16px] text-[var(--sc-text-muted)]">The current wall scope has no DLP volume in this time range.</p>
+        </GlassPanel>
+      ) : (
+        <div className="grid h-full min-h-0 grid-cols-[minmax(0,1.35fr)_minmax(440px,0.9fr)] gap-5 pb-2 max-2xl:grid-cols-1">
+          <div className="grid min-h-0 grid-rows-[minmax(360px,1fr)_minmax(300px,0.8fr)] gap-5">
+            <GlassPanel className="min-h-0 overflow-hidden p-5">
+              <WallSectionHeading label="DLP alert timeline" detail={`Global wall range: ${filters.timeRange}; volume trend and severity mix`} />
+              <div className="mt-4 h-[calc(100%-54px)] min-h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={timeline} margin={{ left: 4, right: 18, top: 16, bottom: 8 }}>
+                    <defs>
+                      <linearGradient id="dlpAlertArea" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor="var(--sc-primary)" stopOpacity={0.42} />
+                        <stop offset="85%" stopColor="var(--sc-primary)" stopOpacity={0.04} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid stroke="rgba(255,255,255,0.07)" vertical={false} />
+                    <XAxis dataKey="label" stroke="var(--sc-text-muted)" tick={{ fontSize: 14 }} tickLine={false} axisLine={false} />
+                    <YAxis stroke="var(--sc-text-muted)" tick={{ fontSize: 14 }} tickLine={false} axisLine={false} width={42} />
+                    <RechartsTooltip contentStyle={{ background: '#081016', border: '1px solid var(--sc-border)', borderRadius: 8, fontSize: 14 }} />
+                    <Area type="monotone" dataKey="alerts" name="Total alerts" stroke="var(--sc-primary)" strokeWidth={3} fill="url(#dlpAlertArea)" />
+                    <Line type="monotone" dataKey="critical" name="Critical" stroke="var(--sc-status-critical)" strokeWidth={2.5} dot={false} />
+                    <Line type="monotone" dataKey="high" name="High" stroke="var(--sc-status-watch)" strokeWidth={2.5} dot={false} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </GlassPanel>
+
+            <div className="grid min-h-0 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-5 max-xl:grid-cols-1">
+              <GlassPanel className="min-h-0 overflow-hidden p-5">
+                <WallSectionHeading label="Alerts by protocol" detail="Channel composition" />
+                <div className="mt-4 grid min-h-[220px] grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] items-center gap-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={protocolRows} dataKey="value" nameKey="label" innerRadius="48%" outerRadius="82%" paddingAngle={3} stroke="rgba(3,7,12,0.75)" strokeWidth={3}>
+                        {protocolRows.map(item => <Cell key={item.label} fill={item.color} />)}
+                      </Pie>
+                      <RechartsTooltip contentStyle={{ background: '#081016', border: '1px solid var(--sc-border)', borderRadius: 8, fontSize: 14 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <DlpLegend items={protocolRows} />
+                </div>
+              </GlassPanel>
+
+              <GlassPanel className="min-h-0 overflow-hidden p-5">
+                <WallSectionHeading label="Alerts by worker type" detail="Generic workforce categories" />
+                <div className="mt-4 grid min-h-[220px] grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] items-center gap-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={workerRows} dataKey="value" nameKey="label" innerRadius="46%" outerRadius="82%" paddingAngle={3} stroke="rgba(3,7,12,0.75)" strokeWidth={3}>
+                        {workerRows.map(item => <Cell key={item.label} fill={item.color} />)}
+                      </Pie>
+                      <RechartsTooltip contentStyle={{ background: '#081016', border: '1px solid var(--sc-border)', borderRadius: 8, fontSize: 14 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <DlpLegend items={workerRows} />
+                </div>
+              </GlassPanel>
+            </div>
+          </div>
+
+          <div className="grid min-h-0 grid-rows-[minmax(360px,1fr)_minmax(320px,0.85fr)] gap-5">
+            <GlassPanel className="min-h-0 overflow-hidden p-5">
+              <WallSectionHeading label="Alerts by recipient category" detail="Most leadership-relevant destinations" />
+              <div className="mt-5 h-[calc(100%-58px)] min-h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={recipientRows} layout="vertical" margin={{ left: 40, right: 24, top: 8, bottom: 8 }}>
+                    <CartesianGrid stroke="rgba(255,255,255,0.07)" horizontal={false} />
+                    <XAxis type="number" stroke="var(--sc-text-muted)" tick={{ fontSize: 14 }} tickLine={false} axisLine={false} />
+                    <YAxis type="category" dataKey="label" stroke="var(--sc-text-muted)" tick={{ fontSize: 14 }} tickLine={false} axisLine={false} width={126} />
+                    <RechartsTooltip contentStyle={{ background: '#081016', border: '1px solid var(--sc-border)', borderRadius: 8, fontSize: 14 }} />
+                    <Bar dataKey="value" name="Alerts" radius={[0, 8, 8, 0]} fill="var(--sc-primary)" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </GlassPanel>
+
+            <GlassPanel className="min-h-0 overflow-hidden p-5">
+              <WallSectionHeading label="Top alert sources" detail="Where DLP volume is concentrated" />
+              <div className="mt-5 flex max-h-[calc(100%-58px)] flex-col gap-3 overflow-y-auto pr-1 styled-scrollbar">
+                {topSources.map((source, index) => (
+                  <div key={source.name} className="grid grid-cols-[40px_minmax(0,1fr)_74px_92px] items-center gap-3 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-3 py-3">
+                    <span className="font-mono text-[14px] text-[var(--sc-text-subtle)]">#{index + 1}</span>
+                    <div className="min-w-0">
+                      <p className="truncate text-[16px] font-semibold text-[var(--sc-text-strong)]">{source.name}</p>
+                      <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">DLP source group</p>
+                    </div>
+                    <p className="text-right font-mono text-[24px] font-semibold text-[var(--sc-text-strong)]">{source.count}</p>
+                    <WallStatusPill status={source.status} />
+                  </div>
+                ))}
+              </div>
+            </GlassPanel>
+          </div>
+        </div>
+      )}
+    </WallViewFrame>
+  );
+}
+
+function alertSurfaceStyle(severity: SevLevel) {
+  if (severity === 'CRITICAL') {
+    return {
+      borderColor: 'color-mix(in srgb, var(--sc-status-critical) 58%, var(--sc-border))',
+      background: 'linear-gradient(90deg, color-mix(in srgb, var(--sc-status-critical) 13%, transparent), rgba(0,0,0,0.22) 42%)',
+      opacity: 1,
+    };
+  }
+  if (severity === 'HIGH') {
+    return {
+      borderColor: 'color-mix(in srgb, var(--sc-status-watch) 48%, var(--sc-border))',
+      background: 'linear-gradient(90deg, color-mix(in srgb, var(--sc-status-watch) 10%, transparent), rgba(0,0,0,0.20) 42%)',
+      opacity: 0.96,
+    };
+  }
+  if (severity === 'LOW') {
+    return {
+      borderColor: 'var(--sc-border)',
+      background: 'rgba(0,0,0,0.14)',
+      opacity: 0.68,
+    };
+  }
+  return {
+    borderColor: 'var(--sc-border)',
+    background: 'rgba(0,0,0,0.20)',
+    opacity: 0.86,
+  };
+}
+
+function AlertTriageRow({ alert, index }: { alert: WallAlertRow; index: number }) {
+  const color = SEVERITY_COLOR[alert.severity];
+  const style = alertSurfaceStyle(alert.severity);
+  const isNewCritical = alert.severity === 'CRITICAL' && alert.status === 'NEW';
+
+  return (
+    <div
+      className={`relative grid min-h-[136px] grid-cols-[12px_minmax(150px,0.28fr)_minmax(0,1fr)_150px] overflow-hidden rounded-[var(--sc-radius)] border transition-transform duration-500 hover:translate-x-1 max-lg:grid-cols-[10px_minmax(0,1fr)] ${isNewCritical ? 'animate-pulse' : ''}`}
+      style={{ ...style, animationDelay: `${index * 65}ms` }}
+    >
+      <div style={{ background: color }} />
+      <div className="flex flex-col justify-between gap-4 px-4 py-4 max-lg:col-start-2 max-lg:flex-row max-lg:items-center max-lg:border-b max-lg:border-[var(--sc-border)]">
+        <span
+          className="inline-flex w-fit items-center rounded-full px-3 py-1.5 font-mono text-[12px] font-semibold uppercase tracking-[0.14em] text-black"
+          style={{ background: color }}
+        >
+          {alert.severity}
+        </span>
+        <span className={`inline-flex w-fit items-center gap-2 rounded-full border px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.12em] ${statusChipClass(alert.status)}`}>
+          {alert.status === 'NEW' && <span className="h-1.5 w-1.5 animate-ping rounded-full bg-current" />}
+          {alert.status}
+        </span>
+      </div>
+      <div className="min-w-0 px-4 py-4 max-lg:col-start-2">
+        <div className="flex flex-wrap items-center gap-2 font-mono text-[12px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">
+          <span className="text-[var(--sc-primary)]">{alert.domain}</span>
+          <span>•</span>
+          <span>{alert.site}</span>
+          <span>•</span>
+          <span>{formatClockTime(alert.time)}</span>
+        </div>
+        <h3 className="mt-2 text-[22px] font-semibold leading-tight text-[var(--sc-text-strong)]">{alert.title}</h3>
+        <p className="mt-2 text-[15px] leading-snug text-[var(--sc-text-muted)]">{alert.summary}</p>
+      </div>
+      <div className="flex flex-col items-end justify-center gap-2 px-4 py-4 text-right max-lg:hidden">
+        <p className="font-mono text-[13px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">Received</p>
+        <p className="font-mono text-[26px] font-semibold leading-none text-[var(--sc-text-strong)]">{formatClockTime(alert.time)}</p>
+        <p className="text-[13px] text-[var(--sc-text-subtle)]">Queue #{index + 1}</p>
+      </div>
+    </div>
+  );
+}
+
+function statusChipClass(status: AlertLifecycle) {
+  if (status === 'NEW') return 'border-[var(--sc-primary)] bg-[color-mix(in_srgb,var(--sc-primary)_18%,transparent)] text-[var(--sc-primary)]';
+  if (status === 'INVESTIGATING') return 'border-[var(--sc-status-watch)] bg-[color-mix(in_srgb,var(--sc-status-watch)_14%,transparent)] text-[var(--sc-status-watch)]';
+  if (status === 'ACKNOWLEDGED') return 'border-[var(--sc-text-muted)] bg-white/5 text-[var(--sc-text-muted)]';
+  return 'border-[var(--sc-status-ok)] bg-[color-mix(in_srgb,var(--sc-status-ok)_12%,transparent)] text-[var(--sc-status-ok)]';
+}
+
+function buildAlertVolume(alerts: WallAlertRow[]) {
+  const buckets = Array.from({ length: 24 }, (_, index) => {
+    const hour = 23 - index;
+    const rows = alerts.filter((_, alertIndex) => (alertIndex * 3 + SEVERITY_RANK[alerts[alertIndex].severity]) % 24 === hour);
+    const fallbackSeverity: SevLevel = hour % 9 === 0 ? 'CRITICAL' : hour % 4 === 0 ? 'HIGH' : hour % 3 === 0 ? 'MEDIUM' : 'LOW';
+    const dominant = rows.sort((a, b) => SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity])[0]?.severity ?? fallbackSeverity;
+    return {
+      label: `${24 - hour}h`,
+      count: rows.length + (hour % 6 === 0 ? 2 : hour % 4 === 0 ? 1 : 0),
+      severity: dominant,
+    };
+  }).reverse();
+
+  return buckets;
+}
+
+function AlertVolumeBars({ data }: { data: Array<{ label: string; count: number; severity: SevLevel }> }) {
+  const max = Math.max(1, ...data.map(item => item.count));
+  return (
+    <div className="flex h-[92px] items-end gap-1.5">
+      {data.map((item, index) => (
+        <div key={`${item.label}-${index}`} className="flex h-full flex-1 flex-col justify-end gap-1">
+          <div
+            className="min-h-2 rounded-t-sm opacity-90"
+            style={{
+              height: `${Math.max(10, (item.count / max) * 86)}%`,
+              background: SEVERITY_COLOR[item.severity],
+            }}
+            title={`${item.count} alerts`}
+          />
+          {index % 6 === 0 && <span className="font-mono text-[9px] text-[var(--sc-text-subtle)]">{item.label}</span>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RankedAlertList({ label, rows, total }: { label: string; rows: Array<[string, number]>; total: number }) {
+  return (
+    <div>
+      <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">{label}</p>
+      <div className="mt-3 grid gap-2">
+        {rows.map(([name, value], index) => (
+          <div key={name} className="rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-3 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="truncate text-[15px] font-semibold text-[var(--sc-text-strong)]">{index + 1}. {name}</p>
+              <p className="font-mono text-[22px] font-semibold text-[var(--sc-text-strong)]">{value}</p>
+            </div>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/5">
+              <div className="h-full rounded-full bg-[var(--sc-primary)]" style={{ width: `${Math.max(8, (value / Math.max(1, total)) * 100)}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function OTDeepDive({ filters, slot }: WallViewProps) {
   const sites = getScopedSites(filters);
   const plcs = sumSites(sites, site => site.domains.ot_assets.plcs);
@@ -1376,6 +1763,7 @@ export function BlankWallView({ filters, slot }: WallViewProps) {
 export const WALL_VIEW_COMPONENTS: Record<ViewId, ComponentType<WallViewProps>> = {
   map: MapWallView,
   alerts: AlertsBoard,
+  'dlp-dashboard': DlpDashboard,
   'ot-deep-dive': OTDeepDive,
   'it-deep-dive': ITDeepDive,
   'posture-trend': PostureTrend,
