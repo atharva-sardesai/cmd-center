@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback, memo } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { DomainData, SiteRecord, StatusLevel } from '@/data/sites';
+import { INDIA_MAP_VIEW } from '@/lib/mapDefaults';
 
 interface CommandMapProps {
   data: any;
@@ -115,7 +116,7 @@ function CommandMap({
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: DEFAULT_DARK_MAP_STYLE,
-      center: [10, 20], zoom: 2.0, minZoom: 1.5, maxZoom: 18,
+      center: [INDIA_MAP_VIEW.lng, INDIA_MAP_VIEW.lat], zoom: INDIA_MAP_VIEW.zoom, minZoom: 1.5, maxZoom: 18,
       attributionControl: false,
       maxPitch: 85,
       interactive,
