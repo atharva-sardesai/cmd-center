@@ -697,7 +697,7 @@ export function AlertsBoard({ filters, slot }: WallViewProps) {
               </div>
               <Bell className="h-8 w-8 text-[var(--sc-primary)]" />
             </div>
-            <AlertVolumeBars data={volume} />
+            <SocAlertVolumeBars data={volume} />
           </GlassPanel>
         </div>
       )}
@@ -720,7 +720,7 @@ export function AlertsBoard({ filters, slot }: WallViewProps) {
             </div>
             <div className="mt-4 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1 styled-scrollbar">
               {alerts.map((alert, index) => (
-                <AlertTriageRow key={alert.id} alert={alert} index={index} />
+                <SocAlertTriageRow key={alert.id} alert={alert} index={index} />
               ))}
             </div>
           </GlassPanel>
@@ -742,8 +742,8 @@ export function AlertsBoard({ filters, slot }: WallViewProps) {
             <GlassPanel className="min-h-0 overflow-hidden p-5">
               <WallSectionHeading label="Domain load" detail="Top alerting sources and sites" />
               <div className="mt-5 grid gap-5 overflow-y-auto pr-1 styled-scrollbar">
-                <RankedAlertList label="Domains" rows={byDomain} total={alerts.length} />
-                <RankedAlertList label="Sites" rows={bySite} total={alerts.length} />
+                <SocRankedAlertList label="Domains" rows={byDomain} total={alerts.length} />
+                <SocRankedAlertList label="Sites" rows={bySite} total={alerts.length} />
               </div>
             </GlassPanel>
           </div>
@@ -753,7 +753,7 @@ export function AlertsBoard({ filters, slot }: WallViewProps) {
   );
 }
 
-function alertSurfaceStyle(severity: SevLevel) {
+function socAlertSurfaceStyle(severity: SevLevel) {
   if (severity === 'CRITICAL') {
     return {
       borderColor: 'color-mix(in srgb, var(--sc-status-critical) 58%, var(--sc-border))',
@@ -782,9 +782,9 @@ function alertSurfaceStyle(severity: SevLevel) {
   };
 }
 
-function AlertTriageRow({ alert, index }: { alert: WallAlertRow; index: number }) {
+function SocAlertTriageRow({ alert, index }: { alert: WallAlertRow; index: number }) {
   const color = SEVERITY_COLOR[alert.severity];
-  const style = alertSurfaceStyle(alert.severity);
+  const style = socAlertSurfaceStyle(alert.severity);
   const isNewCritical = alert.severity === 'CRITICAL' && alert.status === 'NEW';
 
   return (
@@ -848,7 +848,7 @@ function buildSocTriageVolume(alerts: WallAlertRow[]) {
   return buckets;
 }
 
-function AlertVolumeBars({ data }: { data: Array<{ label: string; count: number; severity: SevLevel }> }) {
+function SocAlertVolumeBars({ data }: { data: Array<{ label: string; count: number; severity: SevLevel }> }) {
   const max = Math.max(1, ...data.map(item => item.count));
   return (
     <div className="flex h-[92px] items-end gap-1.5">
@@ -869,7 +869,7 @@ function AlertVolumeBars({ data }: { data: Array<{ label: string; count: number;
   );
 }
 
-function RankedAlertList({ label, rows, total }: { label: string; rows: Array<[string, number]>; total: number }) {
+function SocRankedAlertList({ label, rows, total }: { label: string; rows: Array<[string, number]>; total: number }) {
   return (
     <div>
       <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">{label}</p>
