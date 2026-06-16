@@ -1142,6 +1142,143 @@ export function DlpDashboard({ filters, slot }: WallViewProps) {
   );
 }
 
+function alertSurfaceStyle(severity: SevLevel) {
+  if (severity === 'CRITICAL') {
+    return {
+      borderColor: 'color-mix(in srgb, var(--sc-status-critical) 58%, var(--sc-border))',
+      background: 'linear-gradient(90deg, color-mix(in srgb, var(--sc-status-critical) 13%, transparent), rgba(0,0,0,0.22) 42%)',
+      opacity: 1,
+    };
+  }
+  if (severity === 'HIGH') {
+    return {
+      borderColor: 'color-mix(in srgb, var(--sc-status-watch) 48%, var(--sc-border))',
+      background: 'linear-gradient(90deg, color-mix(in srgb, var(--sc-status-watch) 10%, transparent), rgba(0,0,0,0.20) 42%)',
+      opacity: 0.96,
+    };
+  }
+  if (severity === 'LOW') {
+    return {
+      borderColor: 'var(--sc-border)',
+      background: 'rgba(0,0,0,0.14)',
+      opacity: 0.68,
+    };
+  }
+  return {
+    borderColor: 'var(--sc-border)',
+    background: 'rgba(0,0,0,0.20)',
+    opacity: 0.86,
+  };
+}
+
+function AlertTriageRow({ alert, index }: { alert: WallAlertRow; index: number }) {
+  const color = SEVERITY_COLOR[alert.severity];
+  const style = alertSurfaceStyle(alert.severity);
+  const isNewCritical = alert.severity === 'CRITICAL' && alert.status === 'NEW';
+
+  return (
+    <div
+      className={`relative grid min-h-[136px] grid-cols-[12px_minmax(150px,0.28fr)_minmax(0,1fr)_150px] overflow-hidden rounded-[var(--sc-radius)] border transition-transform duration-500 hover:translate-x-1 max-lg:grid-cols-[10px_minmax(0,1fr)] ${isNewCritical ? 'animate-pulse' : ''}`}
+      style={{ ...style, animationDelay: `${index * 65}ms` }}
+    >
+      <div style={{ background: color }} />
+      <div className="flex flex-col justify-between gap-4 px-4 py-4 max-lg:col-start-2 max-lg:flex-row max-lg:items-center max-lg:border-b max-lg:border-[var(--sc-border)]">
+        <span
+          className="inline-flex w-fit items-center rounded-full px-3 py-1.5 font-mono text-[12px] font-semibold uppercase tracking-[0.14em] text-black"
+          style={{ background: color }}
+        >
+          {alert.severity}
+        </span>
+        <span className={`inline-flex w-fit items-center gap-2 rounded-full border px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.12em] ${statusChipClass(alert.status)}`}>
+          {alert.status === 'NEW' && <span className="h-1.5 w-1.5 animate-ping rounded-full bg-current" />}
+          {alert.status}
+        </span>
+      </div>
+      <div className="min-w-0 px-4 py-4 max-lg:col-start-2">
+        <div className="flex flex-wrap items-center gap-2 font-mono text-[12px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">
+          <span className="text-[var(--sc-primary)]">{alert.domain}</span>
+          <span>•</span>
+          <span>{alert.site}</span>
+          <span>•</span>
+          <span>{formatClockTime(alert.time)}</span>
+        </div>
+        <h3 className="mt-2 text-[22px] font-semibold leading-tight text-[var(--sc-text-strong)]">{alert.title}</h3>
+        <p className="mt-2 text-[15px] leading-snug text-[var(--sc-text-muted)]">{alert.summary}</p>
+      </div>
+      <div className="flex flex-col items-end justify-center gap-2 px-4 py-4 text-right max-lg:hidden">
+        <p className="font-mono text-[13px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">Received</p>
+        <p className="font-mono text-[26px] font-semibold leading-none text-[var(--sc-text-strong)]">{formatClockTime(alert.time)}</p>
+        <p className="text-[13px] text-[var(--sc-text-subtle)]">Queue #{index + 1}</p>
+      </div>
+    </div>
+  );
+}
+
+function statusChipClass(status: AlertLifecycle) {
+  if (status === 'NEW') return 'border-[var(--sc-primary)] bg-[color-mix(in_srgb,var(--sc-primary)_18%,transparent)] text-[var(--sc-primary)]';
+  if (status === 'INVESTIGATING') return 'border-[var(--sc-status-watch)] bg-[color-mix(in_srgb,var(--sc-status-watch)_14%,transparent)] text-[var(--sc-status-watch)]';
+  if (status === 'ACKNOWLEDGED') return 'border-[var(--sc-text-muted)] bg-white/5 text-[var(--sc-text-muted)]';
+  return 'border-[var(--sc-status-ok)] bg-[color-mix(in_srgb,var(--sc-status-ok)_12%,transparent)] text-[var(--sc-status-ok)]';
+}
+
+function buildAlertVolume(alerts: WallAlertRow[]) {
+  const buckets = Array.from({ length: 24 }, (_, index) => {
+    const hour = 23 - index;
+    const rows = alerts.filter((_, alertIndex) => (alertIndex * 3 + SEVERITY_RANK[alerts[alertIndex].severity]) % 24 === hour);
+    const fallbackSeverity: SevLevel = hour % 9 === 0 ? 'CRITICAL' : hour % 4 === 0 ? 'HIGH' : hour % 3 === 0 ? 'MEDIUM' : 'LOW';
+    const dominant = rows.sort((a, b) => SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity])[0]?.severity ?? fallbackSeverity;
+    return {
+      label: `${24 - hour}h`,
+      count: rows.length + (hour % 6 === 0 ? 2 : hour % 4 === 0 ? 1 : 0),
+      severity: dominant,
+    };
+  }).reverse();
+
+  return buckets;
+}
+
+function AlertVolumeBars({ data }: { data: Array<{ label: string; count: number; severity: SevLevel }> }) {
+  const max = Math.max(1, ...data.map(item => item.count));
+  return (
+    <div className="flex h-[92px] items-end gap-1.5">
+      {data.map((item, index) => (
+        <div key={`${item.label}-${index}`} className="flex h-full flex-1 flex-col justify-end gap-1">
+          <div
+            className="min-h-2 rounded-t-sm opacity-90"
+            style={{
+              height: `${Math.max(10, (item.count / max) * 86)}%`,
+              background: SEVERITY_COLOR[item.severity],
+            }}
+            title={`${item.count} alerts`}
+          />
+          {index % 6 === 0 && <span className="font-mono text-[9px] text-[var(--sc-text-subtle)]">{item.label}</span>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RankedAlertList({ label, rows, total }: { label: string; rows: Array<[string, number]>; total: number }) {
+  return (
+    <div>
+      <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-[var(--sc-text-muted)]">{label}</p>
+      <div className="mt-3 grid gap-2">
+        {rows.map(([name, value], index) => (
+          <div key={name} className="rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-3 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="truncate text-[15px] font-semibold text-[var(--sc-text-strong)]">{index + 1}. {name}</p>
+              <p className="font-mono text-[22px] font-semibold text-[var(--sc-text-strong)]">{value}</p>
+            </div>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/5">
+              <div className="h-full rounded-full bg-[var(--sc-primary)]" style={{ width: `${Math.max(8, (value / Math.max(1, total)) * 100)}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function OTDeepDive({ filters, slot }: WallViewProps) {
   const sites = getScopedSites(filters);
   const plcs = sumSites(sites, site => site.domains.ot_assets.plcs);
