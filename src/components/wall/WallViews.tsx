@@ -963,11 +963,13 @@ function DlpHeadlineCard({ label, value, detail, tone }: {
   const color = dlpMetricToneColor(tone);
 
   return (
-    <GlassPanel className="relative min-h-[154px] overflow-hidden p-5">
-      <div className="absolute inset-y-0 left-0 w-1.5" style={{ background: color }} />
-      <p className="font-mono text-[13px] uppercase tracking-[0.16em] text-[var(--sc-text-muted)]">{label}</p>
-      <p className="mt-4 font-mono text-[50px] font-semibold leading-none" style={{ color }}>{value}</p>
-      <p className="mt-3 text-[15px] leading-snug text-[var(--sc-text-muted)]">{detail}</p>
+    <GlassPanel className="relative min-h-[118px] p-0">
+      <div className="absolute bottom-4 left-4 top-4 w-1.5 rounded-full" style={{ background: color }} />
+      <div className="pl-8 pr-5 py-4">
+        <p className="font-mono text-[12px] uppercase tracking-[0.16em] text-[var(--sc-text-muted)]">{label}</p>
+        <p className="mt-2 font-mono text-[40px] font-semibold leading-none" style={{ color }}>{value}</p>
+        <p className="mt-2 text-[14px] leading-snug text-[var(--sc-text-muted)]">{detail}</p>
+      </div>
     </GlassPanel>
   );
 }
@@ -1030,7 +1032,7 @@ export function DlpDashboard({ filters, slot }: WallViewProps) {
       filters={filters}
       slot={slot}
       hero={(
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <DlpHeadlineCard label="Total alerts" value={totalAlerts} detail={`${sites.length} scoped ${sites.length === 1 ? 'site' : 'sites'} · ${filters.timeRange} wall range`} tone={totalAlerts > 24 ? 'watch' : 'neutral'} />
           <DlpHeadlineCard label="Blocked / prevented" value={blocked} detail={`${blockRate}% prevention rate across active policies`} tone={blockRate >= 65 ? 'ok' : blockRate >= 45 ? 'watch' : 'critical'} />
           <DlpHeadlineCard label="False positives" value={falsePositives} detail={`${falsePositiveRate}% review noise in the current queue`} tone={falsePositiveRate > 18 ? 'critical' : falsePositiveRate > 11 ? 'watch' : 'ok'} />
@@ -1045,11 +1047,11 @@ export function DlpDashboard({ filters, slot }: WallViewProps) {
           <p className="mt-3 text-[16px] text-[var(--sc-text-muted)]">The current wall scope has no DLP volume in this time range.</p>
         </GlassPanel>
       ) : (
-        <div className="grid h-full min-h-0 grid-cols-[minmax(0,1.35fr)_minmax(440px,0.9fr)] gap-5 pb-2 max-2xl:grid-cols-1">
-          <div className="grid min-h-0 grid-rows-[minmax(360px,1fr)_minmax(300px,0.8fr)] gap-5">
-            <GlassPanel className="min-h-0 overflow-hidden p-5">
+        <div className="grid h-full min-h-0 grid-rows-[minmax(250px,1.05fr)_minmax(220px,0.95fr)] gap-4 pb-1">
+          <div className="grid min-h-0 grid-cols-[minmax(0,1.35fr)_minmax(360px,0.9fr)] gap-4 max-xl:grid-cols-1">
+            <GlassPanel className="min-h-0 p-4">
               <WallSectionHeading label="DLP alert timeline" detail={`Global wall range: ${filters.timeRange}; volume trend and severity mix`} />
-              <div className="mt-4 h-[calc(100%-54px)] min-h-[280px]">
+              <div className="mt-3 h-[calc(100%-48px)] min-h-[205px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={timeline} margin={{ left: 4, right: 18, top: 16, bottom: 8 }}>
                     <defs>
@@ -1069,44 +1071,9 @@ export function DlpDashboard({ filters, slot }: WallViewProps) {
                 </ResponsiveContainer>
               </div>
             </GlassPanel>
-
-            <div className="grid min-h-0 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-5 max-xl:grid-cols-1">
-              <GlassPanel className="min-h-0 overflow-hidden p-5">
-                <WallSectionHeading label="Alerts by protocol" detail="Channel composition" />
-                <div className="mt-4 grid min-h-[220px] grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] items-center gap-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={protocolRows} dataKey="value" nameKey="label" innerRadius="48%" outerRadius="82%" paddingAngle={3} stroke="rgba(3,7,12,0.75)" strokeWidth={3}>
-                        {protocolRows.map(item => <Cell key={item.label} fill={item.color} />)}
-                      </Pie>
-                      <RechartsTooltip contentStyle={{ background: '#081016', border: '1px solid var(--sc-border)', borderRadius: 8, fontSize: 14 }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <DlpLegend items={protocolRows} />
-                </div>
-              </GlassPanel>
-
-              <GlassPanel className="min-h-0 overflow-hidden p-5">
-                <WallSectionHeading label="Alerts by worker type" detail="Generic workforce categories" />
-                <div className="mt-4 grid min-h-[220px] grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] items-center gap-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={workerRows} dataKey="value" nameKey="label" innerRadius="46%" outerRadius="82%" paddingAngle={3} stroke="rgba(3,7,12,0.75)" strokeWidth={3}>
-                        {workerRows.map(item => <Cell key={item.label} fill={item.color} />)}
-                      </Pie>
-                      <RechartsTooltip contentStyle={{ background: '#081016', border: '1px solid var(--sc-border)', borderRadius: 8, fontSize: 14 }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <DlpLegend items={workerRows} />
-                </div>
-              </GlassPanel>
-            </div>
-          </div>
-
-          <div className="grid min-h-0 grid-rows-[minmax(360px,1fr)_minmax(320px,0.85fr)] gap-5">
-            <GlassPanel className="min-h-0 overflow-hidden p-5">
+            <GlassPanel className="min-h-0 p-4">
               <WallSectionHeading label="Alerts by recipient category" detail="Most leadership-relevant destinations" />
-              <div className="mt-5 h-[calc(100%-58px)] min-h-[280px]">
+              <div className="mt-3 h-[calc(100%-48px)] min-h-[205px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartsBarChart data={recipientRows} layout="vertical" margin={{ left: 40, right: 24, top: 8, bottom: 8 }}>
                     <CartesianGrid stroke="rgba(255,255,255,0.07)" horizontal={false} />
@@ -1118,18 +1085,50 @@ export function DlpDashboard({ filters, slot }: WallViewProps) {
                 </ResponsiveContainer>
               </div>
             </GlassPanel>
+          </div>
 
-            <GlassPanel className="min-h-0 overflow-hidden p-5">
+          <div className="grid min-h-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(360px,0.95fr)] gap-4 max-xl:grid-cols-1">
+            <GlassPanel className="min-h-0 p-4">
+              <WallSectionHeading label="Alerts by protocol" detail="Channel composition" />
+              <div className="mt-3 grid h-[calc(100%-48px)] min-h-[175px] grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] items-center gap-3">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={protocolRows} dataKey="value" nameKey="label" innerRadius="48%" outerRadius="82%" paddingAngle={3} stroke="rgba(3,7,12,0.75)" strokeWidth={3}>
+                      {protocolRows.map(item => <Cell key={item.label} fill={item.color} />)}
+                    </Pie>
+                    <RechartsTooltip contentStyle={{ background: '#081016', border: '1px solid var(--sc-border)', borderRadius: 8, fontSize: 14 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <DlpLegend items={protocolRows} />
+              </div>
+            </GlassPanel>
+
+            <GlassPanel className="min-h-0 p-4">
+              <WallSectionHeading label="Alerts by worker type" detail="Generic workforce categories" />
+              <div className="mt-3 grid h-[calc(100%-48px)] min-h-[175px] grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] items-center gap-3">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={workerRows} dataKey="value" nameKey="label" innerRadius="46%" outerRadius="82%" paddingAngle={3} stroke="rgba(3,7,12,0.75)" strokeWidth={3}>
+                      {workerRows.map(item => <Cell key={item.label} fill={item.color} />)}
+                    </Pie>
+                    <RechartsTooltip contentStyle={{ background: '#081016', border: '1px solid var(--sc-border)', borderRadius: 8, fontSize: 14 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <DlpLegend items={workerRows} />
+              </div>
+            </GlassPanel>
+
+            <GlassPanel className="min-h-0 p-4">
               <WallSectionHeading label="Top alert sources" detail="Where DLP volume is concentrated" />
-              <div className="mt-5 flex max-h-[calc(100%-58px)] flex-col gap-3 overflow-y-auto pr-1 styled-scrollbar">
+              <div className="mt-3 flex max-h-[calc(100%-48px)] flex-col gap-2 overflow-y-auto pr-1 styled-scrollbar">
                 {topSources.map((source, index) => (
-                  <div key={source.name} className="grid grid-cols-[40px_minmax(0,1fr)_74px_92px] items-center gap-3 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-3 py-3">
+                  <div key={source.name} className="grid grid-cols-[34px_minmax(0,1fr)_60px_92px] items-center gap-2 rounded-[var(--sc-radius)] border border-[var(--sc-border)] bg-black/20 px-3 py-2">
                     <span className="font-mono text-[14px] text-[var(--sc-text-subtle)]">#{index + 1}</span>
                     <div className="min-w-0">
-                      <p className="truncate text-[16px] font-semibold text-[var(--sc-text-strong)]">{source.name}</p>
+                      <p className="truncate text-[15px] font-semibold text-[var(--sc-text-strong)]">{source.name}</p>
                       <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--sc-text-muted)]">DLP source group</p>
                     </div>
-                    <p className="text-right font-mono text-[24px] font-semibold text-[var(--sc-text-strong)]">{source.count}</p>
+                    <p className="text-right font-mono text-[22px] font-semibold text-[var(--sc-text-strong)]">{source.count}</p>
                     <WallStatusPill status={source.status} />
                   </div>
                 ))}

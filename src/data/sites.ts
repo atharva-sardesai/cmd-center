@@ -87,8 +87,10 @@ function build(
   const dlpP     = Math.round(itSv / 8) + 4;
   const dlpI     = Math.max(0, Math.round((100 - posture) / 12));
   const dlpBlocked = Math.max(1, Math.round(dlpI * (posture >= 80 ? 0.74 : posture >= 70 ? 0.66 : 0.58)));
-  const dlpFalsePositives = Math.max(0, Math.round(dlpI * (posture >= 82 ? 0.08 : posture >= 70 ? 0.13 : 0.19)));
-  const dlpEscalated = Math.max(0, Math.round(dlpI * (posture >= 82 ? 0.12 : posture >= 70 ? 0.18 : 0.26)));
+  const dlpFalsePositiveTarget = Math.max(0, Math.round(dlpI * (posture >= 82 ? 0.08 : posture >= 70 ? 0.13 : 0.19)));
+  const dlpEscalationTarget = Math.max(0, Math.round(dlpI * (posture >= 82 ? 0.12 : posture >= 70 ? 0.18 : 0.26)));
+  const dlpFalsePositives = Math.min(dlpFalsePositiveTarget, Math.max(0, dlpI - dlpBlocked));
+  const dlpEscalated = Math.min(dlpEscalationTarget, Math.max(0, dlpI - dlpBlocked - dlpFalsePositives));
   const otH      = Math.round(otP * 0.6);
   const otS      = Math.round(otP * 0.35);
   const itEp     = Math.round(itSv * 7);
