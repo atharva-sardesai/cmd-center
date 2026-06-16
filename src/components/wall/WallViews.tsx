@@ -5,6 +5,8 @@ import type { ComponentType, ErrorInfo, ReactNode } from 'react';
 import {
   Area,
   AreaChart,
+  Bar as RechartsBar,
+  BarChart as RechartsBarChart,
   Cell,
   CartesianGrid,
   Line,
@@ -1106,13 +1108,13 @@ export function DlpDashboard({ filters, slot }: WallViewProps) {
               <WallSectionHeading label="Alerts by recipient category" detail="Most leadership-relevant destinations" />
               <div className="mt-5 h-[calc(100%-58px)] min-h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={recipientRows} layout="vertical" margin={{ left: 40, right: 24, top: 8, bottom: 8 }}>
+                  <RechartsBarChart data={recipientRows} layout="vertical" margin={{ left: 40, right: 24, top: 8, bottom: 8 }}>
                     <CartesianGrid stroke="rgba(255,255,255,0.07)" horizontal={false} />
                     <XAxis type="number" stroke="var(--sc-text-muted)" tick={{ fontSize: 14 }} tickLine={false} axisLine={false} />
                     <YAxis type="category" dataKey="label" stroke="var(--sc-text-muted)" tick={{ fontSize: 14 }} tickLine={false} axisLine={false} width={126} />
                     <RechartsTooltip contentStyle={{ background: '#081016', border: '1px solid var(--sc-border)', borderRadius: 8, fontSize: 14 }} />
-                    <Bar dataKey="value" name="Alerts" radius={[0, 8, 8, 0]} fill="var(--sc-primary)" />
-                  </BarChart>
+                    <RechartsBar dataKey="value" name="Alerts" radius={[0, 8, 8, 0]} fill="var(--sc-primary)" />
+                  </RechartsBarChart>
                 </ResponsiveContainer>
               </div>
             </GlassPanel>
