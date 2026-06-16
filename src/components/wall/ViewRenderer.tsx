@@ -24,6 +24,7 @@ export const WALL_VIEW_META: Record<ViewId, {
 }> = {
   map: { label: 'Map View', kicker: 'Enterprise geography', Icon: Map },
   alerts: { label: 'Alerts Board', kicker: 'Prioritized event queue', Icon: Bell },
+  'dlp-dashboard': { label: 'DLP Dashboard', kicker: 'Data-loss prevention posture', Icon: Shield },
   'ot-deep-dive': { label: 'OT Deep Dive', kicker: 'Operational asset posture', Icon: Cpu },
   'it-deep-dive': { label: 'IT Deep Dive', kicker: 'Technology estate posture', Icon: MonitorCog },
   'posture-trend': { label: 'Posture Trend', kicker: 'Security index movement', Icon: ChartNoAxesCombined },

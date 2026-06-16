@@ -3,6 +3,7 @@ import { ALL_LAYERS } from '@/data/layerMap';
 export type ViewId =
   | 'map'
   | 'alerts'
+  | 'dlp-dashboard'
   | 'ot-deep-dive'
   | 'it-deep-dive'
   | 'posture-trend'
@@ -75,6 +76,7 @@ export const WALL_SLOTS: WallSlot[] = ['1', '2', '3', '4', '5', '6'];
 export const WALL_VIEWS: ViewId[] = [
   'map',
   'alerts',
+  'dlp-dashboard',
   'ot-deep-dive',
   'it-deep-dive',
   'posture-trend',
