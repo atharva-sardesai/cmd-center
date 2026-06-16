@@ -59,7 +59,12 @@ function scopedAnalytics(selectedSite: SiteRecord | null) {
   return {
     appClassification: sumRecords(sites.map(site => site.deskAnalytics.appClassification)),
     vulnerabilitySeverity: sumRecords(sites.map(site => site.deskAnalytics.vulnerabilitySeverity)),
-    devices: sumRecords(sites.map(site => site.domains.it_assets)),
+    devices: sumRecords(sites.map(site => ({
+      servers: site.domains.it_assets.servers,
+      endpoints: site.domains.it_assets.endpoints,
+      network: site.domains.it_assets.network,
+      cloud: site.domains.it_assets.cloud,
+    }))),
     drStatus: sumRecords(sites.map(site => site.deskAnalytics.drStatus)),
     compliance: averageRecords(sites.map(site => site.deskAnalytics.compliance)),
     posture: selectedSite

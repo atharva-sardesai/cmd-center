@@ -606,7 +606,7 @@ export function MapWallView({ filters, mode = 'display', onDraftSiteSelect }: Wa
           onSiteClick={mode === 'control' ? onDraftSiteSelect : undefined}
         />
       </MapErrorBoundary>
-      <AnalyticsMapChrome selectedSite={selected} />
+      <AnalyticsMapChrome selectedSite={selected ?? null} />
     </section>
   );
 }
