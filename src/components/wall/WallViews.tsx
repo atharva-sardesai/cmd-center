@@ -663,7 +663,7 @@ export function AlertsBoard({ filters, slot }: WallViewProps) {
   const bySite = Array.from(new Map(alerts.map(alert => [alert.site, alerts.filter(item => item.site === alert.site).length])))
     .sort((a, b) => b[1] - a[1])
     .slice(0, 4);
-  const volume = buildAlertVolume(alerts);
+  const volume = buildSocAlertVolume(alerts);
 
   return (
     <WallViewFrame
@@ -800,7 +800,7 @@ function AlertTriageRow({ alert, index }: { alert: WallAlertRow; index: number }
         >
           {alert.severity}
         </span>
-        <span className={`inline-flex w-fit items-center gap-2 rounded-full border px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.12em] ${statusChipClass(alert.status)}`}>
+        <span className={`inline-flex w-fit items-center gap-2 rounded-full border px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.12em] ${alertStatusChipClass(alert.status)}`}>
           {alert.status === 'NEW' && <span className="h-1.5 w-1.5 animate-ping rounded-full bg-current" />}
           {alert.status}
         </span>
@@ -825,14 +825,14 @@ function AlertTriageRow({ alert, index }: { alert: WallAlertRow; index: number }
   );
 }
 
-function statusChipClass(status: AlertLifecycle) {
+function alertStatusChipClass(status: AlertLifecycle) {
   if (status === 'NEW') return 'border-[var(--sc-primary)] bg-[color-mix(in_srgb,var(--sc-primary)_18%,transparent)] text-[var(--sc-primary)]';
   if (status === 'INVESTIGATING') return 'border-[var(--sc-status-watch)] bg-[color-mix(in_srgb,var(--sc-status-watch)_14%,transparent)] text-[var(--sc-status-watch)]';
   if (status === 'ACKNOWLEDGED') return 'border-[var(--sc-text-muted)] bg-white/5 text-[var(--sc-text-muted)]';
   return 'border-[var(--sc-status-ok)] bg-[color-mix(in_srgb,var(--sc-status-ok)_12%,transparent)] text-[var(--sc-status-ok)]';
 }
 
-function buildAlertVolume(alerts: WallAlertRow[]) {
+function buildSocAlertVolume(alerts: WallAlertRow[]) {
   const buckets = Array.from({ length: 24 }, (_, index) => {
     const hour = 23 - index;
     const rows = alerts.filter((_, alertIndex) => (alertIndex * 3 + SEVERITY_RANK[alerts[alertIndex].severity]) % 24 === hour);
